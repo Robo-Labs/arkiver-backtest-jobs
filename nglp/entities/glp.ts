@@ -27,8 +27,8 @@ interface IGLP {
 
 export const GLP = createEntity<IGLP>("GLP", {
   id: String,
-  block: Number,
-  timestamp: Number,
+  block: { type: Number, index: true },
+  timestamp: { type: Number, index: true },
   glpAum: Number,
   glpTotalSupply: Number,
   glpPrice: Number,

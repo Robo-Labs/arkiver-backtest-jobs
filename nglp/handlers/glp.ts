@@ -28,12 +28,14 @@ const toNumber = (n: bigint, decimals: number) => {
 	return Number(n) / (10 ** decimals)
 }
 
-export const GLPHandler: BlockHandler = ({ block, client }: {
+export const GLPHandler: BlockHandler = async ({ block, client }: {
 	block: Block;
 	client: PublicClient;
 	store: Store;
   }): Promise<void> => {
+	console.log('hello')
 	const run = async () => {
+		const ts = Date.now()
 		console.log('block ' + block.number)
 		if (block.number === null) throw new Error('')
 		const blockNumber = block.number
@@ -180,8 +182,9 @@ export const GLPHandler: BlockHandler = ({ block, client }: {
 			cumulativeRewardPerToken,
 			gmxPrice,
 		})
-		await glp.save()
+		glp.save()
+		console.log(((Date.now() - ts) / 1000).toFixed(2) + 's')
 	}
-	run()
+	await run()
 	return Promise.resolve()
 };
