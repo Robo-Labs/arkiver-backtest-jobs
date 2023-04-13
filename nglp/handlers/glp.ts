@@ -1,7 +1,7 @@
 import { BlockHandler, Store } from "../deps.ts";
 import { type PublicClient, type Block } from "npm:viem";
-import { Contract, Provider } from 'npm:ethers-multicall';
-import { ethers, BigNumber } from "npm:ethers@5.7.2";
+import { Contract, Provider } from 'https://esm.sh/ethcall';
+import { ethers, BigNumber } from "npm:ethers@6.1.0";
 import erc20 from "../abis/erc20.ts";
 import { GLP } from "../entities/glp.ts";
 import { glpVaultAbi } from "../abis/glpVaultAbi.ts";
@@ -28,21 +28,20 @@ const toNumber = (n: bigint, decimals: number) => {
 	return Number(n) / (10 ** decimals)
 }
 
+// deno-lint-ignore require-await
 export const GLPHandler: BlockHandler = async ({ block, client }: {
 	block: Block;
 	client: PublicClient;
 	store: Store;
-  }): Promise<void> => {
-	console.log('hello')
+}): Promise<void> => {
 	const run = async () => {
 		const ts = Date.now()
 		console.log('block ' + block.number)
 		if (block.number === null) throw new Error('')
 		const blockNumber = block.number
 		const isNewManager = blockNumber > 40559781n
-		const provider = new ethers.providers.JsonRpcProvider(client.transport.url)
-		const multicall = new Provider(provider);
-		await multicall.init();
+		const provider = new ethers.JsonRpcProvider(client.transport.url)
+		const multicall = new Provider(42161, provider);
 
 		const mgr = isNewManager ? '0x3963FfC9dff443c2A94f21b129D429891E32ec18' as Address : '0x321F653eED006AD1C29D174e17d96351BDe22649' as Address // Use the new one after it was deployed
 		const glpManager = new Contract(mgr, glpManagerAbi, provider)
@@ -66,6 +65,8 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 			ethPriceBn,
 			btcGlobalShortSizeBn, 
 			ethGlobalShortSizeBn,
+			btcGlobalShortAveragePricesBn, 
+			ethGlobalShortAveragePricesBn,
 			btcGuaranteedUsdBn, 
 			ethGuaranteedUsdBn,
 			btcUtilisationBn, 
@@ -85,13 +86,15 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 			ethChainlink.latestAnswer(),
 			glpVault.globalShortSizes(BTC),
 			glpVault.globalShortSizes(ETH),
+			glpVault.globalShortAveragePrices(BTC),
+			glpVault.globalShortAveragePrices(ETH),
 			glpVault.guaranteedUsd(BTC),
 			glpVault.guaranteedUsd(ETH),
 			glpVault.getUtilisation(BTC),
 			glpVault.getUtilisation(ETH),
 			rewardTracker.cumulativeRewardPerToken(),
-			SushiRouter.getAmountsOut(BigNumber.from(10).pow(18),[GMX, USDC])
-		])
+			SushiRouter.getAmountsOut(10n ** 18n,[GMX, USDC])
+		], { blockTag: Number(blockNumber)} ) as any
 		
 		const glpAum = toNumber(glpAumBn, GLP_PRICE_DECIMALS)
 		const glpTotalSupply = toNumber(glpTotalSupplyBn, STANDARD_DECIMALS)
@@ -107,6 +110,8 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 		const ethPrice = toNumber(ethPriceBn, PRICE_FEED_DECIMALS)
 		const btcShortSize = toNumber(btcGlobalShortSizeBn, GLP_PRICE_DECIMALS)
 		const ethShortSize = toNumber(ethGlobalShortSizeBn, GLP_PRICE_DECIMALS)
+		const btcShortAveragePrice = toNumber(btcGlobalShortAveragePricesBn, GLP_PRICE_DECIMALS)
+		const ethShortAveragePrice = toNumber(ethGlobalShortAveragePricesBn, GLP_PRICE_DECIMALS)
 		const btcGuaranteedUsd = toNumber(btcGuaranteedUsdBn, GLP_PRICE_DECIMALS)
 		const ethGuaranteedUsd = toNumber(ethGuaranteedUsdBn, GLP_PRICE_DECIMALS)
 		const btcUtilisation = toNumber(btcUtilisationBn, FUNDING_RATE_DECIMALS)
@@ -127,7 +132,7 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 			] = await multicall.all([
 				glpVault.globalShortAveragePrices(BTC),
 				glpVault.globalShortAveragePrices(ETH),
-			])
+			]) as any
 
 			const btcAveragePrice = toNumber(btcAveragePriceBn, GLP_PRICE_DECIMALS)
 			const ethAveragePrice = toNumber(ethAveragePriceBn, GLP_PRICE_DECIMALS)
@@ -146,7 +151,7 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 			] = await multicall.all([
 				glpManager.getGlobalShortDelta(BTC, btcPriceBn, btcGlobalShortSizeBn),
 				glpManager.getGlobalShortDelta(ETH, ethPriceBn, ethGlobalShortSizeBn),
-			])
+			]) as any
 
 			const btcDelta = btcGlobalShortDeltaBn[1] ? toNumber(btcGlobalShortDeltaBn[0], GLP_PRICE_DECIMALS) : 0
 			const ethDelta = ethGlobalShortDeltaBn[1] ? toNumber(ethGlobalShortDeltaBn[0], GLP_PRICE_DECIMALS) : 0
@@ -177,6 +182,10 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 			btcAumB,
 			ethAumC,
 			btcAumC,
+			ethShortSize,
+			btcShortSize,
+			btcShortAveragePrice,
+			ethShortAveragePrice,
 			btcUtilisation,
 			ethUtilisation,
 			cumulativeRewardPerToken,
@@ -185,6 +194,5 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 		glp.save()
 		console.log(((Date.now() - ts) / 1000).toFixed(2) + 's')
 	}
-	await run()
-	return Promise.resolve()
+	run()
 };

@@ -19,6 +19,10 @@ interface IGLP {
 	btcAumB: number
 	ethAumC: number
 	btcAumC: number
+	ethShortSize: number
+	btcShortSize: number
+	btcShortAveragePrice: number
+	ethShortAveragePrice: number
 	btcUtilisation: number
 	ethUtilisation: number
 	cumulativeRewardPerToken: number
@@ -42,6 +46,10 @@ export const GLP = createEntity<IGLP>("GLP", {
   btcAumB: Number,
   ethAumC: Number,
   btcAumC: Number,
+  ethShortSize: Number,
+  btcShortSize: Number,
+  btcShortAveragePrice: Number,
+  ethShortAveragePrice: Number,
   btcUtilisation: Number,
   ethUtilisation: Number,
   cumulativeRewardPerToken: Number,
