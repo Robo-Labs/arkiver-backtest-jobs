@@ -9,6 +9,8 @@ interface IGLP {
 	glpPrice: number
 	btcReserves: number
 	ethReserves: number
+	btcReservedAmount: number
+	ethReservedAmount: number
 	btcPrice: number
 	ethPrice: number
 	ethUsdgAmounts: number
@@ -38,6 +40,8 @@ export const GLP = createEntity<IGLP>("GLP", {
   glpPrice: Number,
   btcReserves: Number,
   ethReserves: Number,
+  btcReservedAmount: Number,
+  ethReservedAmount: Number,
   btcPrice: Number,
   ethPrice: Number,
   ethAumA: Number,

@@ -172,6 +172,8 @@ export const GLPHandler: BlockHandler = async ({ block, client }: {
 			glpPrice,
 			btcReserves,
 			ethReserves,
+			btcReservedAmount,
+			ethReservedAmount,
 			btcPrice,
 			ethPrice,
 			btcUsdgAmounts,
