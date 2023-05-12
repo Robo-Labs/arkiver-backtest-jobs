@@ -4,9 +4,8 @@ import { type PublicClient, type Block } from "npm:viem";
 import { Store } from "../deps.ts";
 import { MinuteData } from "../entities/minutedata.ts";
 import { Sync } from "../entities/sync.ts";
-import erc20 from '../abis/erc20.ts'
 import { TotalSupply } from "../entities/totalsupply.ts";
-import { IPair, Pair, PairType } from "../entities/pair.ts";
+import { Pair, PairType } from "../entities/pair.ts";
 import { getPairId } from "./entityutil.ts";
 
 const nearestMinute = (now: number) => {
@@ -32,12 +31,9 @@ export const minuteDataHandler: BlockHandler = async ({ block, client, store }: 
 	store: Store;
 }): Promise<void> => {
 	processMinuteData(client, store, Number(block.timestamp), Number(block.number))
-
-
 }	
 
 export const processMinuteData = async (client: PublicClient, store: Store, timestamp: number, blockNumber: number) => {
-	console.log('processMinuteData')
 	const nowMinute = nearestMinute(Number(timestamp))
 	const id = 'minute'
 	let status = await TimeTracker.findOne({ id })
@@ -49,8 +45,6 @@ export const processMinuteData = async (client: PublicClient, store: Store, time
 	// Get pairs from the db
 
 	let minuteDatas: any[] = []
-	console.log('nowMinute ', nowMinute)
-	console.log('lastMinute', lastMinute)
 	if (nowMinute > lastMinute) {
 		const pairs = await Pair.find({}).populate('token0 token1').exec()
 		console.log()
