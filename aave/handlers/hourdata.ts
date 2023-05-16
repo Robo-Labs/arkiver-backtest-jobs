@@ -30,7 +30,6 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 	if (lastHour < nowHour) {
 		const pools = await getPools(client, store, block.number!)
 		const { poolData } = getPoolDataAddress(client)
-		console.log(pools.map(pool => pool.underlying.decimals))
 
 		const records = await Promise.all(pools.map(async pool => {		  
 			const [

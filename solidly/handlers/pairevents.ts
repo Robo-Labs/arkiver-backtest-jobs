@@ -23,7 +23,7 @@ export const saveTotalSupply = async (client: PublicClient, pair: Address, block
 		block: block.toString(),
 		totalSupply: `0x${totalSupply.toString(16)}`,
 	})
-	rec.save()
+	await rec.save()
 }
 
 export const mintHandler: EventHandlerFor<typeof SolidlyPairAbi, "Mint"> = async (

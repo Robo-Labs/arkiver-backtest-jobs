@@ -10,9 +10,9 @@ import { Token } from "./entities/token.ts";
 
 // LUSD/WEH Pair Data
 const VelodromeLusdWeth = '0x91e0fC1E4D32cC62C4f9Bc11aCa5f3a159483d31' as const
-const startBlockHeight = 90000000n//97150000n
+const startBlockHeight = 86540000n//97150000n
 
-const manifest = new Manifest('velo-minute-data');
+const manifest = new Manifest('velo-minutely');
 const optimsm = manifest
 	.addEntities([MinuteData, TotalSupply, Pair, Token])
 	.chain("optimism", { blockRange: 2000n })

@@ -47,10 +47,8 @@ export const processMinuteData = async (client: PublicClient, store: Store, time
 	let minuteDatas: any[] = []
 	if (nowMinute > lastMinute) {
 		const pairs = await Pair.find({}).populate('token0 token1').exec()
-		console.log()
 		// we have data to populate
 		while (lastMinute < nowMinute) {
-			console.log('minute passed!')
 			lastMinute += ONE_MINUTE
 
 			const getSyncAndSupply = async (pair: PairType) => {
@@ -93,5 +91,5 @@ export const processMinuteData = async (client: PublicClient, store: Store, time
 	await MinuteData.bulkSave(minuteDatas)
 
 	// Delete old sync data we no longer need it
-	Sync.deleteMany({ timestamp: { $lt: lastMinute } }).exec()
+	// Sync.deleteMany({ timestamp: { $lt: lastMinute } }).exec()
 }

@@ -92,7 +92,6 @@ export const getToken = async (client: PublicClient, address: Address) => {
 		})
 	])
 
-	console.log('decimals', decimals)
 	const token: IToken = {
 		id,
 		address: address,
