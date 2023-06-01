@@ -2,22 +2,26 @@ import { type PublicClient, type Address, type Block } from "npm:viem";
 import { Store } from "https://deno.land/x/robo_arkiver/mod.ts";
 import { CrvTokenAbi } from "../abis/crvToken.ts";
 import { Erc20Abi } from "../abis/erc20.ts";
-import { FeedRegistryAbi } from "../abis/FeedRegistryAbi.ts";
 import { StableSwapAbi } from "../abis/StableSwapAbi.ts";
-import { CurvePool, ICurvePool } from "../entities/pool.ts";
+import { CurvePool } from "../entities/curvepool.ts";
 import { Token } from "../entities/token.ts";
-import { CLPriceRegistry, USD } from "./hourdata.ts";
 import { CurveGaugeControllerAbi } from "../abis/curveGaugeController.ts";
+import { TokenPrice } from "./tokenprice.ts";
+import { toNumber } from "./util.ts";
 
-
-
-const toNumber = (n: bigint, decimals: number = 0) => {
-	return Number(n) / (10 ** decimals)
+export const getPoolFromToken = async (token: string) => {
+	return (await CurvePool.findOne({ token }).populate('tokens'))
 }
 
 export const getPoolFromSymbol = async (symbol: string) => {
 	return (await CurvePool.findOne({ symbol }).populate('tokens'))!
 }
+
+export const getPoolCount = () => {
+	return CurvePool.countDocuments()
+}
+
+const MKR = '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2'
 
 export const getPool = async (client: PublicClient, address: Address, tokenAddress?: Address) => {
 	const record = await CurvePool.findOne({ address }).populate('tokens')
@@ -61,13 +65,18 @@ export const getPool = async (client: PublicClient, address: Address, tokenAddre
 	return pool
 }
 
-const getToken = async (client: PublicClient, network: string, address: Address) => {
+
+export const getToken = async (client: PublicClient, network: string, address: Address) => {
 	const record = await Token.findOne({ network, address })
 	if (record)
 		return record
 
+	// MKR doesn't conform to the spec :(
+	const getSymbol = async (address: Address) => {
+		return address == MKR ? 'MKR' : await client.readContract({ abi: Erc20Abi, address, functionName: "symbol" }) 
+	}
 	const [ symbol, decimals ] = await Promise.all([
-		client.readContract({ abi: Erc20Abi, address, functionName: "symbol" }),
+		getSymbol(address),
 		client.readContract({ abi: Erc20Abi, address, functionName: "decimals" }),
 	])
 
@@ -79,44 +88,6 @@ const getToken = async (client: PublicClient, network: string, address: Address)
 	})
 	await token.save()
 	return token
-}
-
-export const getPoolTokenPrice = async (client: PublicClient, block: Block, symbol: Address) => {
-	const pool = await getPoolFromSymbol(symbol)
-
-	// Get total supply and reserves
-	const [ totalSupplyBigInt, ...reservesBigInt ] = (await Promise.all([
-		client.readContract({
-			abi: Erc20Abi,
-			address: pool.token as Address,
-			functionName: "totalSupply",
-			blockNumber: block.number!,
-		}),
-		...pool.tokens.map((token, i) => {
-			return client.readContract({
-				abi: StableSwapAbi,
-				address: pool.address as Address,
-				functionName: "balances",
-				args: [BigInt(i)],
-				blockNumber: block.number!,
-			})
-		}),
-	]))
-	const totalSupply = toNumber(totalSupplyBigInt, 18)
-	const reserves = reservesBigInt.map((e, i) => toNumber(e, pool.tokens[i].decimals))
-
-	const prices = (await Promise.all(pool.tokens.map((token) => {
-		return client.readContract({
-			abi: FeedRegistryAbi,
-			address: CLPriceRegistry,
-			functionName: "latestAnswer",
-			args: [token.address, USD],
-			blockNumber: block.number!,
-		})
-	}))).map(e => toNumber(e, 8))
-	const lpValue = reserves.reduce((acc, reserve, i) => acc + (reserve * prices[i]!), 0)
-	const price = lpValue / totalSupply
-	return price
 }
 
 export const getGaugeStats = async (client: PublicClient, store: Store, block: Block, symbol: string) => {
@@ -134,13 +105,7 @@ export const getGaugeStats = async (client: PublicClient, store: Store, block: B
 			})
 		}),
 		store.retrieve(`crvPrice:${blockNumber}`, async () => {
-			return await client.readContract({
-				abi: FeedRegistryAbi,
-				address: CLPriceRegistry,
-				functionName: "latestAnswer",
-				args: [crvToken, USD],
-				blockNumber: block.number!,
-			})
+			return await TokenPrice.getCLPrice(client, block.number!, crvToken)
 		}),
 		client.readContract({
 			abi: CurveGaugeControllerAbi,
@@ -159,7 +124,7 @@ export const getGaugeStats = async (client: PublicClient, store: Store, block: B
 
 	return {
 		crvRate: toNumber(crvRate, 18), 
-		crvPrice: toNumber(crvPrice, 8), 
+		crvPrice: crvPrice, 
 		gaugeRelativeWeight: toNumber(gaugeRelativeWeight, 18), 
 		gaugeTotalSupply: toNumber(gaugeTotalSupply, 18) 
 	}
