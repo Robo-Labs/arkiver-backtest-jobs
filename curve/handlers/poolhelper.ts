@@ -12,6 +12,9 @@ import { toNumber } from "./util.ts";
 export const getPoolFromToken = async (token: string) => {
 	return (await CurvePool.findOne({ token }).populate('tokens'))
 }
+export const getCurvePools = async () => {
+	return (await CurvePool.find({}).populate('tokens'))
+}
 
 export const getPoolFromSymbol = async (symbol: string) => {
 	return (await CurvePool.findOne({ symbol }).populate('tokens'))!
@@ -52,7 +55,6 @@ export const getPool = async (client: PublicClient, address: Address, tokenAddre
 	})
 
 	const tokens = await Promise.all(tokenAddresses.map(address => getToken(client, network, address)))
-
 	const pool = new CurvePool({
 		network,
 		address,

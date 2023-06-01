@@ -6,7 +6,7 @@ import { StableSwapAbi } from "../abis/StableSwapAbi.ts";
 import { IAavePool } from "../entities/aavepool.ts";
 import { ICurvePool } from "../entities/curvepool.ts";
 import { getPools } from "./aavepools.ts";
-import { getPoolFromToken } from "./poolhelper.ts";
+import { getCurvePools, getPoolFromToken } from "./poolhelper.ts";
 import { toNumber } from "./util.ts";
 
 export const CLPriceRegistry = '0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf'
