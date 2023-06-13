@@ -1,0 +1,12 @@
+{
+	"tasks": {
+		"dev": "arkiver start . -c \"mongodb://root:example@localhost:27017\""
+	},
+	"fmt": {
+		"options": {
+			"useTabs": true,
+			"semiColons": false,
+			"singleQuote": true
+		}
+	}
+}
