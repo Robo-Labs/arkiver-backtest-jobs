@@ -1,5 +1,5 @@
 
-import { EventHandlerFor, Store } from "https://deno.land/x/robo_arkiver@v0.4.8/mod.ts";
+import { EventHandlerFor, Store } from "https://deno.land/x/robo_arkiver/mod.ts";
 // import erc20 from "../abis/erc20.ts";
 // import { Sync } from "../entities/sync.ts";
 // import { TotalSupply } from "../entities/totalsupply.ts";

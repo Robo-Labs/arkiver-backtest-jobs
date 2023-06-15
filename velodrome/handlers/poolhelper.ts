@@ -8,6 +8,8 @@ import { Token } from "../entities/token.ts";
 import { CurveGaugeControllerAbi } from "../abis/curveGaugeController.ts";
 import { TokenPrice } from "./tokenprice.ts";
 import { toNumber } from "./util.ts";
+import { VelodromeVoterAbi } from "../abis/VelodromeVoterAbi.ts"
+import { VelodromeGaugeAbi } from "../abis/VelodromeGaugeAbi.ts"
 
 export const getPoolFromToken = async (token: string) => {
 	return (await AmmPool.findOne({ token }).populate('tokens'))
@@ -37,7 +39,6 @@ export const getPool = async (client: PublicClient, address: Address, stable: Bo
 		address,
 		functionName: "tokens"
 	})
-	console.log(`nate tokens: ${tokenAddresses}`)
 
 	const symbol = await client.readContract({
 		abi: Erc20Abi,
@@ -85,42 +86,62 @@ export const getToken = async (client: PublicClient, network: string, address: A
 	return token
 }
 
-export const getGaugeStats = async (client: PublicClient, store: Store, block: Block, symbol: string) => {
-	const crvToken = '0xD533a949740bb3306d119CC777fa900bA034cd52'
-	const crvGaugeController = '0x2F50D538606Fa9EDD2B11E2446BEb18C9D5846bB'
-	const pool = await getPoolFromSymbol(symbol)
-	const blockNumber = Number(block.number!)
-	const [ crvRate, crvPrice, gaugeRelativeWeight, gaugeTotalSupply ] = (await Promise.all([
-		store.retrieve(`crvRate:${blockNumber}`, async () => {
-			return await client.readContract({
-				abi: CrvTokenAbi,
-				address: crvToken,
-				functionName: 'rate',
-				blockNumber: block.number!,
-			})
-		}),
-		store.retrieve(`crvPrice:${blockNumber}`, async () => {
-			return await TokenPrice.getCLPrice(client, block.number!, crvToken)
-		}),
-		client.readContract({
-			abi: CurveGaugeControllerAbi,
-			address: crvGaugeController,
-			functionName: 'gauge_relative_weight',
-			args: [pool.gauge as Address],
-			blockNumber: block.number!,
-		}),
-		client.readContract({
-			abi: Erc20Abi,
-			address: pool.gauge as Address,
-			functionName: 'totalSupply',
+export const getRewardRate = async (client: PublicClient, store: Store, block: Block, pool: string) => {
+	const veloToken = '0x3c8B650257cFb5f272f799F5e2b4e65093a11a05'
+	const veloVoter = '0x09236cfF45047DBee6B921e00704bed6D6B8Cf7e'
+	const gauge = await store.retrieve(`veloGauge:${pool}`, async () => {
+		return await client.readContract({
+			abi: VelodromeVoterAbi,
+			address: veloVoter,
+			functionName: 'gauges',
+			args: [pool],
 			blockNumber: block.number!,
 		})
-	]))
+	})
+	const rewardPerSecond = await client.readContract({
+			abi: VelodromeGaugeAbi,
+			address: gauge,
+			functionName: 'rewardPerToken',
+			args: [veloToken],
+			blockNumber: block.number!,
+		})
+	return rewardPerSecond
+	
 
-	return {
-		crvRate: toNumber(crvRate, 18), 
-		crvPrice: crvPrice, 
-		gaugeRelativeWeight: toNumber(gaugeRelativeWeight, 18), 
-		gaugeTotalSupply: toNumber(gaugeTotalSupply, 18) 
-	}
+
+	// const pool = await getPoolFromSymbol(symbol)
+	// const blockNumber = Number(block.number!)
+	// const [ crvRate, crvPrice, gaugeRelativeWeight, gaugeTotalSupply ] = (await Promise.all([
+	// 	store.retrieve(`crvRate:${blockNumber}`, async () => {
+	// 		return await client.readContract({
+	// 			abi: CrvTokenAbi,
+	// 			address: crvToken,
+	// 			functionName: 'rate',
+	// 			blockNumber: block.number!,
+	// 		})
+	// 	}),
+	// 	store.retrieve(`crvPrice:${blockNumber}`, async () => {
+	// 		return await TokenPrice.getCLPrice(client, block.number!, crvToken)
+	// 	}),
+	// 	client.readContract({
+	// 		abi: CurveGaugeControllerAbi,
+	// 		address: crvGaugeController,
+	// 		functionName: 'gauge_relative_weight',
+	// 		args: [pool.gauge as Address],
+	// 		blockNumber: block.number!,
+	// 	}),
+	// 	client.readContract({
+	// 		abi: Erc20Abi,
+	// 		address: pool.gauge as Address,
+	// 		functionName: 'totalSupply',
+	// 		blockNumber: block.number!,
+	// 	})
+	// ]))
+
+	// return {
+	// 	crvRate: toNumber(crvRate, 18), 
+	// 	crvPrice: crvPrice, 
+	// 	gaugeRelativeWeight: toNumber(gaugeRelativeWeight, 18), 
+	// 	gaugeTotalSupply: toNumber(gaugeTotalSupply, 18) 
+	// }
 }

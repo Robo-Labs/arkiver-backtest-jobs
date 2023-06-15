@@ -1,15 +1,15 @@
-import { Manifest } from "https://deno.land/x/robo_arkiver@v0.4.7/mod.ts";
+import { Manifest } from "https://deno.land/x/robo_arkiver/mod.ts";
 import { AmmPool } from "./entities/ammpool.ts";
 import { Token } from "./entities/token.ts";
 import { hourDataHandler } from "./handlers/hourdata.ts";
 import { Snapshot } from "./entities/snapshot.ts";
-import { AavePool } from "./entities/aavepool.ts";
+import { FarmSnapshot } from "./entities/farm.ts";
 
-const startBlockHeight = 80000000n // enough to test
+const startBlockHeight = 105500000n // enough to test
 
 const manifest = new Manifest('velodrome-snapshots');
 const optimism = manifest
-	.addEntities([AmmPool, Token, Snapshot])
+	.addEntities([AmmPool, Token, Snapshot, FarmSnapshot])
 	.chain("optimism")
 
 // Hourly data handler
