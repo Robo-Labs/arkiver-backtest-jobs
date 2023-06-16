@@ -24,7 +24,7 @@ const CLMap = {"optimism": {"0x7F5c764cBc14f9669B88837ca1490cCa17c31607": "0x16a
 export class TokenPrice {
 
 	static async get(client: PublicClient, store: Store, block: bigint, token: any): Promise<number> {
-		return await store.retrieve(`TokenPrice:${token}:${Number(block)}`, async () => {
+		return await store.retrieve(`TokenPrice:${token.address}:${Number(block)}`, async () => {
 			try {
 				return await TokenPrice.getCLPrice(client, block, token.address)
 			} catch(e) {
@@ -56,13 +56,12 @@ export class TokenPrice {
 		})
 
 		return toNumber(amountOut[0], 6)
-		//return toNumber(amountOut, 6)
 	}
 
 	static async getCLPrice(client: PublicClient, block: bigint, token: Address) {
 		return toNumber((await client.readContract({
 			abi: EACAggregatorProxy,
-			address: CLMap[client.chain.name.toLocaleLowerCase()][token],
+			address: CLMap[client.chain.name.toLowerCase()][token],
 			functionName: "latestAnswer",
 			blockNumber: block,
 		})), 8)

@@ -53,8 +53,6 @@ export const addLiquidity: EventHandlerFor<typeof StableSwapAbi, "AddLiquidity">
 
 	console.log(pool)
 	await new Promise((resolve) => setTimeout(resolve, 10000))
-
-
 }
 
 
