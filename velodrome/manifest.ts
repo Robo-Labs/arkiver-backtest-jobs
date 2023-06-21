@@ -5,7 +5,7 @@ import { hourDataHandler } from "./handlers/hourdata.ts";
 import { Snapshot } from "./entities/snapshot.ts";
 import { FarmSnapshot } from "./entities/farmsnapshot.ts";
 
-const startBlockHeight = 105500000n // enough to test
+const startBlockHeight = 80000000n // enough to test
 
 const manifest = new Manifest('velodrome-snapshots-incentives');
 const optimism = manifest

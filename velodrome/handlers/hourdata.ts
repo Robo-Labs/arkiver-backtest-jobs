@@ -12,7 +12,9 @@ import { VelodromeGaugeAbi } from "../abis/VelodromeGaugeAbi.ts";
 import { VelodromeRouterAbi } from "../abis/VelodromeRouter.ts";
 
 export const POOLS: { pool: Address, token: Address, stable: Boolean }[] = [
-	{ pool: '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe', token: '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe', stable: true } // LUSD / USDC
+	{ pool: '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe', token: '0x207AddB05C548F262219f6bFC6e11c02d0f7fDbe', stable: true }, // LUSD / USDC
+	{ pool: '0x8a9Cd3dce710e90177B4332C108E159a15736A0F', token: '0x8a9Cd3dce710e90177B4332C108E159a15736A0F', stable: true }, // LUSD / USD+
+	{ pool: '0x88835af27c7a22bded54033c5fad482a913981bc', token: '0x88835af27c7a22bded54033c5fad482a913981bc', stable: true }  // LUSD / MAI
 ]
 
 const HOUR = 60 * 60
