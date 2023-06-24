@@ -7,7 +7,7 @@ import { FarmSnapshot } from "./entities/farmsnapshot.ts";
 
 const startBlockHeight = 80000000n // enough to test
 
-const manifest = new Manifest('velodrome-snapshots-incentives');
+const manifest = new Manifest('velodrome-snapshots-incentives-3');
 const optimism = manifest
 	.addEntities([AmmPool, Token, Snapshot, FarmSnapshot])
 	.chain("optimism")
