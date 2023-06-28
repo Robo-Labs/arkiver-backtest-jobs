@@ -26,7 +26,7 @@ export const getPoolCount = () => {
 
 const MKR = '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2'
 
-export const getPool = async (client: PublicClient, address: Address) => {
+export const getPool = async (client: PublicClient, address: Address, symbol: string) => {
 	const record = await AmmPool.findOne({ address }).populate('tokens')
 	if (record)
 		return record
@@ -69,6 +69,7 @@ export const getPool = async (client: PublicClient, address: Address) => {
 		network,
 		protocol: `UNISWAP`,
 		address,
+		symbol,
 		tokenSymbols: tokens.map(e => e.symbol),
 		tokens: tokens,
 		fee: fee,

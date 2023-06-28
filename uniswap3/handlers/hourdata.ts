@@ -12,8 +12,8 @@ import { VelodromeGaugeAbi } from "../abis/VelodromeGaugeAbi.ts";
 import { VelodromeRouterAbi } from "../abis/VelodromeRouter.ts";
 import { UNI3PoolAbi } from "../abis/UNI3PoolAbi.ts";
 
-export const POOLS: { pool: Address, token: Address, stable: Boolean }[] = [
-	{ pool: '0x4e0924d3a751be199c426d52fb1f2337fa96f736' }, // LUSD / USDC
+export const POOLS: { pool: Address, symbol: string }[] = [
+	{ pool: '0x4e0924d3a751be199c426d52fb1f2337fa96f736', symbol: 'UNI3-LUSD/USDC 0.05%' }, // LUSD / USDC
 ]
 
 const HOUR = 60 * 60
@@ -32,10 +32,10 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 	const lastHour = last?.timestamp ?? (nearestHour(now) - HOUR)
 	if (lastHour < nowHour) {
 		if (await getPoolCount() === 0) {
-			await Promise.all(POOLS.map(info => getPool(client, info.pool))) // hack to make sure all pools exist
+			await Promise.all(POOLS.map(info => getPool(client, info.pool, info.symbol))) // hack to make sure all pools exist
 		}
 		const records = await Promise.all(POOLS.map(async info => {
-			const pool = await getPool(client, info.pool)
+			const pool = await getPool(client, info.pool, info.symbol)
 			const [
 				totalSupply,
 				slot0
@@ -56,12 +56,12 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 			])
 			const sqrtPriceX96 = slot0[0]
 			const tick = slot0[1]
-			console.log(`sqrtPriceX96: ${sqrtPriceX96}`)
-			console.log(`totalSupply: ${totalSupply}`)
+			// console.log(`sqrtPriceX96: ${sqrtPriceX96}`)
+			// console.log(`totalSupply: ${totalSupply}`)
 			//console.log(slot0)
 			const prices = await Promise.all(pool.tokens.map(async (token) => {
 				const price = await TokenPrice.get(client, store, block.number!, token)
-				console.log(`price ${token.address}: ${price}`)
+				//console.log(`price ${token.address}: ${price}`)
 				return price
 			}))
 			return new Snapshot({

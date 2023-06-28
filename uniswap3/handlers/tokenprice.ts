@@ -28,10 +28,8 @@ export class TokenPrice {
 		//console.log(token)
 		return await store.retrieve(`TokenPrice:${token.address}:${Number(block)}`, async () => {
 			try {
-				console.log(`getUniPrice: ${token.address}`)
 				return await TokenPrice.getUniv3SpotPrice(client, block, token.address)
 			} catch(e) {
-				console.log(`getCLPrice: ${token.address}`)
 				return await TokenPrice.getCLPrice(client, block, token.address)
 			}
 		})
