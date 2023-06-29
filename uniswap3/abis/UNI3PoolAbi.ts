@@ -1017,4 +1017,4 @@ export const UNI3PoolAbi = [
       "stateMutability":"view",
       "type":"function"
     }
-  ]
+  ] as const

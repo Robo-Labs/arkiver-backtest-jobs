@@ -1,16 +1,12 @@
 import { BlockHandler, Store } from "https://deno.land/x/robo_arkiver/mod.ts";
 import { type PublicClient, type Block, type Address } from "npm:viem";
 import { Erc20Abi } from "../abis/erc20.ts";
-import { velodromeAbi } from "../abis/velodromeAbi.ts";
-import { VelodromeVoterAbi } from "../abis/VelodromeVoterAbi.ts"
 import { Snapshot } from "../entities/snapshot.ts";
-import { FarmSnapshot } from "../entities/farmsnapshot.ts";
 import { getPool, getPoolCount, getRewardRate, getToken } from "./poolhelper.ts";
 import { TokenPrice } from "./tokenprice.ts";
 import { toNumber } from "./util.ts";
-import { VelodromeGaugeAbi } from "../abis/VelodromeGaugeAbi.ts";
-import { VelodromeRouterAbi } from "../abis/VelodromeRouter.ts";
 import { UNI3PoolAbi } from "../abis/UNI3PoolAbi.ts";
+import { Swap } from '../entities/swap.ts'
 
 export const POOLS: { pool: Address, symbol: string }[] = [
 	{ pool: '0x4e0924d3a751be199c426d52fb1f2337fa96f736', symbol: 'UNI3-LUSD/USDC 0.05%' }, // LUSD / USDC
@@ -38,7 +34,9 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 			const pool = await getPool(client, info.pool, info.symbol)
 			const [
 				totalSupply,
-				slot0
+				slot0,
+				feeGrowthGlobal0X128,
+				feeGrowthGlobal1X128
 			] = await Promise.all([
 				client.readContract({
 					abi: UNI3PoolAbi,
@@ -52,10 +50,34 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 					functionName: "slot0",
 					args: [],
 					blockNumber: block.number!
+				}),
+				client.readContract({
+					abi: UNI3PoolAbi,
+					address: info.pool,
+					functionName: "feeGrowthGlobal0X128",
+					args: [],
+					blockNumber: block.number!
+				}),
+				client.readContract({
+					abi: UNI3PoolAbi,
+					address: info.pool,
+					functionName: "feeGrowthGlobal1X128",
+					args: [],
+					blockNumber: block.number!
 				})
 			])
 			const sqrtPriceX96 = slot0[0]
 			const tick = slot0[1]
+			// console.log(`feeGrowthGlobal0X128: ${feeGrowthGlobal0X128}`)
+			// console.log(`feeGrowthGlobal1X128: ${feeGrowthGlobal1X128}`)
+			const normalFeeGrowthGlobal0X128 = toNumber(feeGrowthGlobal0X128) // TODO get decimals
+			const normalFeeGrowthGlobal1X128 = toNumber(feeGrowthGlobal1X128) // TODO get decimals
+			// console.log(`normalFeeGrowthGlobal0X128: ${normalFeeGrowthGlobal0X128}`)
+			// console.log(`normalFeeGrowthGlobal1X128: ${normalFeeGrowthGlobal1X128}`)
+			const stringFeeGrowthGlobal0X128 = normalFeeGrowthGlobal0X128.toString() // TODO get decimals
+			const stringFeeGrowthGlobal1X128 = normalFeeGrowthGlobal1X128.toString() // TODO get decimals
+			// console.log(`stringFeeGrowthGlobal0X128: ${stringFeeGrowthGlobal0X128}`)
+			// console.log(`stringFeeGrowthGlobal1X128: ${stringFeeGrowthGlobal1X128}`)
 			// console.log(`sqrtPriceX96: ${sqrtPriceX96}`)
 			// console.log(`totalSupply: ${totalSupply}`)
 			//console.log(slot0)
@@ -64,6 +86,18 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 				//console.log(`price ${token.address}: ${price}`)
 				return price
 			}))
+			//const now = Number(Date.now())
+			//const hr = 1000*60*60
+			//const lastHour = now-hr
+			// console.log(`lastHour: ${lastHour}`)
+			// console.log(`nowHour: ${nowHour}`)
+			const lastHourSwapLow = await Swap.findOne({timestamp: {$gt: lastHour*100, $lt: nowHour*100}}).sort({ price1: 1 })
+			const lastHourSwapHigh = await Swap.findOne({timestamp: {$gt: lastHour*100, $lt: nowHour*100}}).sort({ price1: -1 })
+			if(lastHourSwapLow)
+				console.log(`lastHourSwapHigh: ${lastHourSwapLow?.price1}`)
+			if(lastHourSwapHigh)
+				console.log(`lastHourSwapHigh: ${lastHourSwapHigh?.price1}`)
+
 			return new Snapshot({
 				res: '1h',
 				pool,
@@ -72,7 +106,11 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 				totalSupply: toNumber(totalSupply, 18),
 				prices: prices,
 				sqrtPriceX96: toNumber(sqrtPriceX96, 18),
-				tick
+				tick,
+				feeGrowthGlobal0X128: stringFeeGrowthGlobal0X128,
+				feeGrowthGlobal1X128: stringFeeGrowthGlobal1X128,
+				low: lastHourSwapLow?.price1,
+				high: lastHourSwapHigh?.price1
 			})
 		}))
 		await Snapshot.bulkSave(records)
