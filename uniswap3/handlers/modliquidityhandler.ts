@@ -1,4 +1,4 @@
-import { formatUnits, fromHex, toHex } from 'npm:viem'
+import { formatUnits, fromHex, numberToHex, toHex } from 'npm:viem'
 import { type EventHandlerFor } from 'https://deno.land/x/robo_arkiver@v0.4.14/mod.ts'
 import { UNI3PoolAbi } from '../abis/UNI3PoolAbi.ts'
 import {UniV3NFTManagerAbi} from '../abis/UniV3NFTManagerAbi.ts'
@@ -190,8 +190,8 @@ export const onDecreaseLiquidity: EventHandlerFor<typeof UniV3NFTManagerAbi, "De
   // pool.totalValueLockedToken1 = totalValueLockedToken1 - toNumber(amount1, token1.decimals)
   const totalValueLockedToken0 = pool.totalValueLockedToken0 ? fromHex(pool.totalValueLockedToken0, 'bigint') : 0n
   const totalValueLockedToken1 = pool.totalValueLockedToken1 ? fromHex(pool.totalValueLockedToken1, 'bigint') : 0n
-  pool.totalValueLockedToken0 = toHex(totalValueLockedToken0 + amount0)
-  pool.totalValueLockedToken1 = toHex(totalValueLockedToken1 + amount1)
+  pool.totalValueLockedToken0 = numberToHex(totalValueLockedToken0 + amount0)
+  pool.totalValueLockedToken1 = numberToHex(totalValueLockedToken1 + amount1)
   const token0Price = await TokenPrice.get(client, store, event.blockNumber, token0)
   const token1Price = await TokenPrice.get(client, store, event.blockNumber, token1)
   pool.totalValueLockedUSD = (toNumber(fromHex(pool.totalValueLockedToken0, 'bigint'), pool.tokens[0].decimals) * token0Price) + (toNumber(fromHex(pool.totalValueLockedToken1, 'bigint'), pool.tokens[1].decimals) * token1Price)
