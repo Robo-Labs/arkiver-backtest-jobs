@@ -2,18 +2,21 @@ import { createEntity } from "../deps.ts";
 import { Types } from 'npm:mongoose'
 
 interface ISnapshot {
-	pool: any,
-	timestamp: number,
-	block: number,
+	pool: any
+	timestamp: number
+	block: number
 	res: '1m' | '1h'
-	totalSupply: number,
-	prices: number[],
-	sqrtPriceX96: number,
-	tick: number,
-	feeGrowthGlobal0X128: string,
-	feeGrowthGlobal1X128: string,
-	low: number,
+	totalSupply: number
+	prices: number[]
+	sqrtPriceX96: number
+	tick: number
+	feeGrowthGlobal0X128: string
+	feeGrowthGlobal1X128: string
+	low: number
 	high: number
+	totalValueLockedUSD: number
+	totalValueLockedToken0: number
+	totalValueLockedToken1: number
 
 }
 
@@ -29,5 +32,8 @@ export const Snapshot = createEntity<ISnapshot>("Snapshot", {
 	feeGrowthGlobal0X128: String,
 	feeGrowthGlobal1X128: String,
 	low: Number,
-	high: Number
+	high: Number,
+	totalValueLockedUSD: Number,
+	totalValueLockedToken0: Number,
+	totalValueLockedToken1: Number
 })

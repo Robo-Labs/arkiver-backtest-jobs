@@ -25,6 +25,7 @@ export const getPoolCount = () => {
 }
 
 const MKR = '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2'
+const MDT = '0x4Dfd148B532e934a2a26eA65689cf6268753e130'
 
 export const getPool = async (client: PublicClient, address: Address, symbol: string) => {
 	const record = await AmmPool.findOne({ address }).populate('tokens')
@@ -82,14 +83,26 @@ export const getPool = async (client: PublicClient, address: Address, symbol: st
 
 
 export const getToken = async (client: PublicClient, network: string, address: Address) => {
-	console.log(`getting token: ${address}`)
+	//console.log(`getting token: ${address}`)
 	const record = await Token.findOne({ network, address })
 	if (record)
 		return record
 
 	// MKR doesn't conform to the spec :(
 	const getSymbol = async (address: Address) => {
-		return address == MKR ? 'MKR' : await client.readContract({ abi: Erc20Abi, address, functionName: "symbol" }) 
+		switch(address){
+			case MKR:
+				return 'MKR'
+			case MDT:
+				return 'MDT'
+			default:
+				try{
+					return await client.readContract({ abi: Erc20Abi, address, functionName: "symbol" })
+				} catch(e) {
+					return "undefined"
+				}
+		}
+		//return address == MKR ? 'MKR' : await client.readContract({ abi: Erc20Abi, address, functionName: "symbol" }) 
 	}
 	const [ symbol, decimals ] = await Promise.all([
 		getSymbol(address),

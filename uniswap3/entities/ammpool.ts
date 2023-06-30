@@ -9,7 +9,10 @@ export interface IAmmPool {
 	tokenSymbols: string[],
 	tokens: any[],
 	fee: number,
-	tickSpacing: number
+	tickSpacing: number,
+	totalValueLockedUSD: number,
+	totalValueLockedToken0: number,
+	totalValueLockedToken1: number
 }
 
 export const AmmPool = createEntity<IAmmPool>("AmmPool", {
@@ -20,6 +23,10 @@ export const AmmPool = createEntity<IAmmPool>("AmmPool", {
 	tokenSymbols: [String],
 	tokens: [{ type: Types.ObjectId, ref: 'Token'}],
 	fee: Number,
-	tickSpacing: Number
+	tickSpacing: Number,
+	totalValueLockedUSD: Number,
+	totalValueLockedToken0: Number,
+	totalValueLockedToken1: Number
+
 });
 

@@ -91,12 +91,12 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 			//const lastHour = now-hr
 			// console.log(`lastHour: ${lastHour}`)
 			// console.log(`nowHour: ${nowHour}`)
-			const lastHourSwapLow = await Swap.findOne({timestamp: {$gt: lastHour*100, $lt: nowHour*100}}).sort({ price1: 1 })
-			const lastHourSwapHigh = await Swap.findOne({timestamp: {$gt: lastHour*100, $lt: nowHour*100}}).sort({ price1: -1 })
-			if(lastHourSwapLow)
-				console.log(`lastHourSwapHigh: ${lastHourSwapLow?.price1}`)
-			if(lastHourSwapHigh)
-				console.log(`lastHourSwapHigh: ${lastHourSwapHigh?.price1}`)
+			const lastHourSwapLow = await Swap.findOne({timestamp: {$gt: lastHour, $lt: nowHour}}).sort({ price1: 1 })
+			const lastHourSwapHigh = await Swap.findOne({timestamp: {$gt: lastHour, $lt: nowHour}}).sort({ price1: -1 })
+			// if(lastHourSwapLow)
+			// 	console.log(`lastHourSwapHigh: ${lastHourSwapLow?.price1}`)
+			// if(lastHourSwapHigh)
+			// 	console.log(`lastHourSwapHigh: ${lastHourSwapHigh?.price1}`)
 
 			return new Snapshot({
 				res: '1h',
@@ -110,7 +110,10 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 				feeGrowthGlobal0X128: stringFeeGrowthGlobal0X128,
 				feeGrowthGlobal1X128: stringFeeGrowthGlobal1X128,
 				low: lastHourSwapLow?.price1,
-				high: lastHourSwapHigh?.price1
+				high: lastHourSwapHigh?.price1,
+				totalValueLockedUSD: pool.totalValueLockedUSD,
+				totalValueLockedToken0: pool.totalValueLockedToken0,
+				totalValueLockedToken1: pool.totalValueLockedToken1
 			})
 		}))
 		await Snapshot.bulkSave(records)
