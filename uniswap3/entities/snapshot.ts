@@ -15,8 +15,8 @@ interface ISnapshot {
 	low: number
 	high: number
 	totalValueLockedUSD: number
-	totalValueLockedToken0: number
-	totalValueLockedToken1: number
+	totalValueLockedToken0: string
+	totalValueLockedToken1: string
 
 }
 
@@ -34,6 +34,6 @@ export const Snapshot = createEntity<ISnapshot>("Snapshot", {
 	low: Number,
 	high: Number,
 	totalValueLockedUSD: Number,
-	totalValueLockedToken0: Number,
-	totalValueLockedToken1: Number
+	totalValueLockedToken0: String,
+	totalValueLockedToken1: String
 })

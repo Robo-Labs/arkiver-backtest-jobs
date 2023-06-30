@@ -11,8 +11,8 @@ export interface IAmmPool {
 	fee: number,
 	tickSpacing: number,
 	totalValueLockedUSD: number,
-	totalValueLockedToken0: number,
-	totalValueLockedToken1: number
+	totalValueLockedToken0: string,
+	totalValueLockedToken1: string
 }
 
 export const AmmPool = createEntity<IAmmPool>("AmmPool", {
@@ -25,8 +25,8 @@ export const AmmPool = createEntity<IAmmPool>("AmmPool", {
 	fee: Number,
 	tickSpacing: Number,
 	totalValueLockedUSD: Number,
-	totalValueLockedToken0: Number,
-	totalValueLockedToken1: Number
+	totalValueLockedToken0: String,
+	totalValueLockedToken1: String
 
 });
 

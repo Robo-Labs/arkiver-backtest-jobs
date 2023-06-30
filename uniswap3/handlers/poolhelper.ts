@@ -58,11 +58,10 @@ export const getPool = async (client: PublicClient, address: Address, symbol: st
 		})
 	])
 	const tokenAddresses = [token0, token1]
-	console.log(`tokenAddresses: ${tokenAddresses}`)
+	//console.log(`tokenAddresses: ${tokenAddresses}`)
 
 
 	const tokens = await Promise.all(tokenAddresses.map(tokenAddress => {
-			console.log(`here we lookup: ${tokenAddress}`)	
 			return getToken(client, network, tokenAddress as Address)
 		})
 	)

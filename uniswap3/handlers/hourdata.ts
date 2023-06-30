@@ -1,5 +1,5 @@
 import { BlockHandler, Store } from "https://deno.land/x/robo_arkiver/mod.ts";
-import { type PublicClient, type Block, type Address } from "npm:viem";
+import { type PublicClient, type Block, type Address, numberToHex } from "npm:viem";
 import { Erc20Abi } from "../abis/erc20.ts";
 import { Snapshot } from "../entities/snapshot.ts";
 import { getPool, getPoolCount, getRewardRate, getToken } from "./poolhelper.ts";
@@ -70,12 +70,13 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 			const tick = slot0[1]
 			// console.log(`feeGrowthGlobal0X128: ${feeGrowthGlobal0X128}`)
 			// console.log(`feeGrowthGlobal1X128: ${feeGrowthGlobal1X128}`)
-			const normalFeeGrowthGlobal0X128 = toNumber(feeGrowthGlobal0X128) // TODO get decimals
-			const normalFeeGrowthGlobal1X128 = toNumber(feeGrowthGlobal1X128) // TODO get decimals
+			
+			//const normalFeeGrowthGlobal0X128 = toNumber(feeGrowthGlobal0X128, pool.tokens[0].decimals) // TODO get decimals
+			//const normalFeeGrowthGlobal1X128 = toNumber(feeGrowthGlobal1X128, pool.tokens[1].decimals) // TODO get decimals
 			// console.log(`normalFeeGrowthGlobal0X128: ${normalFeeGrowthGlobal0X128}`)
 			// console.log(`normalFeeGrowthGlobal1X128: ${normalFeeGrowthGlobal1X128}`)
-			const stringFeeGrowthGlobal0X128 = normalFeeGrowthGlobal0X128.toString() // TODO get decimals
-			const stringFeeGrowthGlobal1X128 = normalFeeGrowthGlobal1X128.toString() // TODO get decimals
+			const stringFeeGrowthGlobal0X128 = numberToHex(feeGrowthGlobal0X128)
+			const stringFeeGrowthGlobal1X128 = numberToHex(feeGrowthGlobal1X128)
 			// console.log(`stringFeeGrowthGlobal0X128: ${stringFeeGrowthGlobal0X128}`)
 			// console.log(`stringFeeGrowthGlobal1X128: ${stringFeeGrowthGlobal1X128}`)
 			// console.log(`sqrtPriceX96: ${sqrtPriceX96}`)
@@ -105,7 +106,7 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 				timestamp: nowHour,
 				totalSupply: toNumber(totalSupply, 18),
 				prices: prices,
-				sqrtPriceX96: toNumber(sqrtPriceX96, 18),
+				sqrtPriceX96: numberToHex(sqrtPriceX96),
 				tick,
 				feeGrowthGlobal0X128: stringFeeGrowthGlobal0X128,
 				feeGrowthGlobal1X128: stringFeeGrowthGlobal1X128,
