@@ -27,57 +27,43 @@ export const getPoolCount = () => {
 const MKR = '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2'
 const MDT = '0x4Dfd148B532e934a2a26eA65689cf6268753e130'
 
-export const getPool = async (client: PublicClient, address: Address, symbol: string) => {
-	const record = await AmmPool.findOne({ address }).populate('tokens')
-	if (record)
-		return record
+export const getBlock = async (client: PublicClient, store: Store, blockNumber: bigint) => {
+	return await store.retrieve(`block:${blockNumber}`, async () => await client.getBlock({ blockNumber }))
+}
 
-	const network = client.chain!.name
-	const [token0, token1, tickSpacing, fee] = await Promise.all([
-		client.readContract({
-			abi: UNI3PoolAbi,
-			address,
-			functionName: "token0"
-		}),
-		client.readContract({
-			abi: UNI3PoolAbi,
-			address,
-			functionName: "token1"
-		}),
-		client.readContract({
-			abi: UNI3PoolAbi,
-			address: address,
-			functionName: "tickSpacing",
-			args: []
-		}),
-		client.readContract({
-			abi: UNI3PoolAbi,
-			address: address,
-			functionName: "fee",
-			args: []
+export const getPool = (client: PublicClient, store: Store, address: Address) => {
+	return store.retrieve(`Univ3:Pool:${address}`, async () => {
+		const record = await AmmPool.findOne({ address }).populate('tokens')
+		if (record)
+			return record
+
+		const [token0, token1, tickSpacing, feeRaw] = await client.multicall({
+			contracts: [
+				{ abi: UNI3PoolAbi, address, functionName: "token0" },
+				{ abi: UNI3PoolAbi, address, functionName: "token1" },
+				{ abi: UNI3PoolAbi, address: address, functionName: "tickSpacing" },
+				{ abi: UNI3PoolAbi, address: address, functionName: "fee" }
+				// { abi: UNI3PoolAbi, address: address, functionName: "name" }
+			]
 		})
-	])
-	const tokenAddresses = [token0, token1]
-	//console.log(`tokenAddresses: ${tokenAddresses}`)
 
+		const network = client.chain!.name
+		const tokens = await Promise.all([ token0, token1 ].map(token => getToken(client, network, token.result!)))
+		const fee = feeRaw.result! / 10000
 
-	const tokens = await Promise.all(tokenAddresses.map(tokenAddress => {
-			return getToken(client, network, tokenAddress as Address)
+		const pool = new AmmPool({
+			network,
+			protocol: `Univ3`,
+			address,
+			symbol: `Univ3 ${tokens[0].symbol}/${tokens[1].symbol	} ${fee}%`,
+			tokens: tokens,
+			fee,
+			tickSpacing: tickSpacing.result!
+
 		})
-	)
-	const pool = new AmmPool({
-		network,
-		protocol: `UNISWAP`,
-		address,
-		symbol,
-		tokenSymbols: tokens.map(e => e.symbol),
-		tokens: tokens,
-		fee: fee,
-		tickSpacing: tickSpacing
-
+		await pool.save()
+		return pool
 	})
-	await pool.save()
-	return pool
 }
 
 

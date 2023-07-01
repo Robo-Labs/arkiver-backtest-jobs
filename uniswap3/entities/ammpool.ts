@@ -1,13 +1,15 @@
 import { createEntity } from "../deps.ts";
+import { Address } from 'npm:viem'
 import { Types } from 'npm:mongoose'
+import { IToken } from "./token.ts";
 
 export interface IAmmPool {
 	network: string,
 	protocol: string,
-	address: string,
+	address: Address,
 	symbol: string,
 	tokenSymbols: string[],
-	tokens: any[],
+	tokens: IToken[],
 	fee: number,
 	tickSpacing: number,
 	totalValueLockedUSD: number,

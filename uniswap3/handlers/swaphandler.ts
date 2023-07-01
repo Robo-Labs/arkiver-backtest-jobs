@@ -1,85 +1,34 @@
-import { formatUnits, fromHex, numberToHex } from 'npm:viem'
+import { formatUnits, fromHex, numberToHex, Address, Hex } from 'npm:viem'
 import { type EventHandlerFor } from 'https://deno.land/x/robo_arkiver@v0.4.14/mod.ts'
 import { UNI3PoolAbi } from '../abis/UNI3PoolAbi.ts'
 import { Swap } from '../entities/swap.ts'
-import {getPool, getToken} from "./poolhelper.ts"
+import {getBlock, getPool, getToken} from "./poolhelper.ts"
 import { toNumber } from "./util.ts";
 import {TokenPrice} from "./tokenprice.ts"
+import { OhlcUtil } from './ohlcutil.ts'
 
-export const POOLSYMBOLS = {'0x4e0924d3a751be199c426d52fb1f2337fa96f736': 'UNI3-LUSD/USDC 0.05%'}
 
-      //const mintHandler: EventHandlerFor<typeof SolidlyPairAbi, "Mint">
+export const POOLS = [
+  '0x4e0924d3a751be199c426d52fb1f2337fa96f736',
+]
+
+// deno-lint-ignore require-await
 export const onSwap: EventHandlerFor<typeof UNI3PoolAbi, "Swap"> = async (
-    { event, client, store }
-  ) => {
-    if(!POOLSYMBOLS[event.address]){
-      return
-    }
-    // console.log("swap")
-    const { sender, recipient, amount0, amount1, sqrtPriceX96, liquidity, tick } = event.args
-    const pool = await getPool(client, event.address, POOLSYMBOLS[event.address])
-    const block = Number(event.blockNumber)
-    //console.log(`price business`)
-    const [token0, token1] = await store.retrieve(`${event.address}:tokens`, async () => {
-      const [token0Address, token1Address] = await Promise.all([
-        client.readContract({
-          abi: UNI3PoolAbi,
-          address: event.address,
-          functionName: "token0"
-        }),
-        client.readContract({
-          abi: UNI3PoolAbi,
-          address: event.address,
-          functionName: "token1"
-        })])
-        const token0 = await getToken(client, 'ethereum', token0Address)
-        const token1 = await getToken(client, 'ethereum', token1Address)
-        return [token0, token1]
-    })
+  { event, client, store }
+) => {
+  if(!POOLS.includes(event.address)){
+    return
+  }
+  console.log('swap')
 
-    const amount0Normal = Math.abs(toNumber(amount0)) / (10 ** token0.decimals)
-    const amount1Normal = Math.abs(toNumber(amount1)) / (10 ** token1.decimals)
-    const amount0Real = toNumber(amount0) / (10 ** token0.decimals)
-    const amount1Real = toNumber(amount1) / (10 ** token1.decimals)
-    //console.log(`amount0Normal: ${amount0Normal}`)
-    //console.log(`amount1Normal: ${amount1Normal}`)
-    const price0 = (amount0Normal/amount1Normal)
-    const price1 = (amount1Normal/amount0Normal)
-    //console.log(`price0: ${price0}`)
-    //console.log(`price1: ${price1}`)
-    const curBlock = await client.getBlock({blockHash: event.blockHash})
-    //console.log(`block:`)
-    //console.log(curBlock)
-    const record = new Swap({
-      pool,
-      hash: event.transactionHash,
-      timestamp: Number(curBlock.timestamp), // TODO get real block time
-      block,
-      sender,
-      recipient,
-      amount0: amount0Real,
-      amount1: amount1Real,
-      price0,
-      price1,
-      sqrtPriceX96: numberToHex(sqrtPriceX96),
-      liquidity: toNumber(liquidity),
-      tick
-    })
-    record.save()
-    //poolRecord.totalValueLockedUSD
-    //const profit0 = amount0>0?Math.floor(amount0*(pool.fee/(10**6))) / (10**token0.decimals): 0
-    //const profit1 = amount1>0?Math.floor(amount1*(pool.fee/(10**6))) / (10**token1.decimals): 0
-    // const totalValueLockedToken0 = pool.totalValueLockedToken0 ? pool.totalValueLockedToken0 : 0
-    // const totalValueLockedToken1 = pool.totalValueLockedToken1 ? pool.totalValueLockedToken1 : 0
-    //  pool.totalValueLockedToken0 = totalValueLockedToken0 + toNumber(amount0, token0.decimals)
-    //  pool.totalValueLockedToken1 = totalValueLockedToken1 + toNumber(amount1, token1.decimals)
-    const totalValueLockedToken0 = pool.totalValueLockedToken0 ? fromHex(pool.totalValueLockedToken0, 'bigint') : 0n
-    const totalValueLockedToken1 = pool.totalValueLockedToken1 ? fromHex(pool.totalValueLockedToken1, 'bigint') : 0n
-    pool.totalValueLockedToken0 = numberToHex(totalValueLockedToken0 + amount0)
-    pool.totalValueLockedToken1 = numberToHex(totalValueLockedToken1 + amount1)
+  const { sqrtPriceX96 } = event.args
+  const block = await getBlock(client, store, event.blockNumber!)
+  const ohlc = await OhlcUtil.get(client, store, Number(block.timestamp), event.address, sqrtPriceX96)
 
-    const token0Price = await TokenPrice.get(client, store, event.blockNumber, token0)
-    const token1Price = await TokenPrice.get(client, store, event.blockNumber, token1)
-    pool.totalValueLockedUSD = (toNumber(fromHex(pool.totalValueLockedToken0, 'bigint'), pool.tokens[0].decimals) * token0Price) + (toNumber(fromHex(pool.totalValueLockedToken1, 'bigint'), pool.tokens[1].decimals) * token1Price)
-    await pool.save()
+  const high = fromHex(ohlc.high, 'bigint')
+  const low = fromHex(ohlc.low, 'bigint')
+  if (sqrtPriceX96 > high) ohlc.high = numberToHex(sqrtPriceX96)
+  if (sqrtPriceX96 < low) ohlc.low = numberToHex(sqrtPriceX96)
+  ohlc.close = sqrtPriceX96
+  ohlc.save()
 }

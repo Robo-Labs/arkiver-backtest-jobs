@@ -1,7 +1,8 @@
 import { createEntity } from "../deps.ts";
+import { Address } from 'npm:viem'
 
 export interface IToken {
-	address: string
+	address: Address
 	network: string
 	decimals: number
 	symbol: string
