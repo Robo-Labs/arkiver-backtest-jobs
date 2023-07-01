@@ -77,7 +77,7 @@ export class TokenPrice {
 		const token1 = toNumber(result[1], 18)
 		const price = token1/token0
 		const priceWeth = await store.retrieve(`${block}:${WETH}:CLprice`, async () => {
-			await TokenPrice.getCLPrice(client, block, WETH)
+			return await TokenPrice.getCLPrice(client, block, WETH)
 		})
 		const priceToken = price*priceWeth
 		return priceToken
