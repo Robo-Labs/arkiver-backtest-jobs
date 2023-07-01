@@ -12,19 +12,16 @@ export const POOLS = [
   '0x4e0924d3a751be199c426d52fb1f2337fa96f736',
 ]
 
-// deno-lint-ignore require-await
 export const onSwap: EventHandlerFor<typeof UNI3PoolAbi, "Swap"> = async (
   { event, client, store }
 ) => {
   if(!POOLS.includes(event.address)){
     return
   }
-  console.log('swap')
 
   const { sqrtPriceX96 } = event.args
   const block = await getBlock(client, store, event.blockNumber!)
   const ohlc = await OhlcUtil.get(client, store, Number(block.timestamp), event.address, sqrtPriceX96)
-
   const high = fromHex(ohlc.high, 'bigint')
   const low = fromHex(ohlc.low, 'bigint')
   if (sqrtPriceX96 > high) ohlc.high = numberToHex(sqrtPriceX96)

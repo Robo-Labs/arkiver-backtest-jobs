@@ -37,21 +37,19 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 		
 		// deno-lint-ignore require-await
 		const snaps = (await Promise.all(pools.map(async pool => {
-			if((await Ohlc.find({ address: pool.address }).count()) === 0) {
-				console.log('no ohlc', { pair: pool.address })
+
+			const ohlc = await OhlcUtil.getOrGapFill(client, store, nowHour, pool.address)
+			if (!ohlc) {
 				return null
 			}
+
 			const [
-				// totalSupply,
-				// slot0,
 				feeGrowthGlobal0X128,
 				feeGrowthGlobal1X128,
 				totalValueLockedToken0,
 				totalValueLockedToken1,
 			] = await client.multicall({
 				contracts: [
-					// { abi: UNI3PoolAbi, address: pool.address, functionName: "liquidity" },
-					// { abi: UNI3PoolAbi, address: pool.address, functionName: "slot0" },
 					{ abi: UNI3PoolAbi, address: pool.address, functionName: "feeGrowthGlobal0X128" },
 					{ abi: UNI3PoolAbi, address: pool.address, functionName: "feeGrowthGlobal1X128" },
 					{ abi: Erc20Abi, address: pool.tokens[0].address, functionName: "balanceOf", args: [pool.address] },
@@ -69,24 +67,17 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 			const tvl1 = toNumber(totalValueLockedToken1.result!, pool.tokens[1].decimals)
 			const totalValueLockedUSD = prices[0] * tvl0 + prices[1] * tvl1
 
-			console.log(now)
-			const ohlc = await OhlcUtil.get(client, store, now, pool.address, 0n)
-			console.log(ohlc)
-			console.log(ohlc?.timestamp, nowHour)
-			
 			return new Snapshot({
 				pool,
 				timestamp: nowHour,
 				block: Number(block.number!),
 				res: '1h',
-				totalSupply: 0,
-				// prices: ,
-				sqrtPriceX96: '',
-				tick: 0,
+				prices,
+				sqrtPriceX96: ohlc.close,
 				feeGrowthGlobal0X128: toNumber(feeGrowthGlobal0X128.result!, pool.tokens[0].decimals),
 				feeGrowthGlobal1X128: toNumber(feeGrowthGlobal1X128.result!, pool.tokens[1].decimals),
-				low: 0,
-				high: 0,
+				low: ohlc.low,
+				high: ohlc.high,
 				totalValueLockedUSD,
 				totalValueLockedToken0: tvl0,
 				totalValueLockedToken1: tvl1,

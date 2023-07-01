@@ -12,7 +12,6 @@ import { IToken } from "../entities/token.ts";
 import { toNumber } from "./util.ts";
 import { Store } from "https://deno.land/x/robo_arkiver/mod.ts";
 import { ethers } from "npm:ethers";
-import { Document } from 'npm:mongoose'
 
 export const CLPriceRegistry = '0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf'
 const Univ3QuoterAddress = '0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6'
@@ -21,15 +20,21 @@ const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
 const LUSD = "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0"
-const CLMap = {	"optimism": {"0x7F5c764cBc14f9669B88837ca1490cCa17c31607": "0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3", //USDC
-							"0x4200000000000000000000000000000000000006": "0x13e3Ee699D1909E989722E753853AE30b17e08c5", //WETH
-							"0xc40F949F8a4e094D1b49a23ea9241D289B7b2819": "0x9dfc79Aaeb5bb0f96C6e9402671981CdFc424052"},
-				"ethereum": {"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x8fffffd4afb6115b954bd326cbe7b4ba576818f6", //USDC
-							"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419"}}// WETH
+const CLMap = {	
+	"optimism": {
+		"0x7F5c764cBc14f9669B88837ca1490cCa17c31607": "0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3", //USDC
+		"0x4200000000000000000000000000000000000006": "0x13e3Ee699D1909E989722E753853AE30b17e08c5", //WETH
+		"0xc40F949F8a4e094D1b49a23ea9241D289B7b2819": "0x9dfc79Aaeb5bb0f96C6e9402671981CdFc424052"
+	},
+	"ethereum": {
+		"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x8fffffd4afb6115b954bd326cbe7b4ba576818f6", //USDC
+		"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419", //WETH
+	}
+}
+
 const UNIV2Map = {"0x5f98805A4E8be255a32880FDeC7F6728C6568bA0": "0xF20EF17b889b437C151eB5bA15A47bFc62bfF469"}
 
 export class TokenPrice {
-
 	static async get(client: PublicClient, store: Store, block: bigint, token: any): Promise<number> {
 		return await store.retrieve(`TokenPrice:${token.address}:${Number(block)}`, async () => {
 			try {

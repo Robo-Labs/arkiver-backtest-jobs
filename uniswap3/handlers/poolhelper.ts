@@ -43,7 +43,6 @@ export const getPool = (client: PublicClient, store: Store, address: Address) =>
 				{ abi: UNI3PoolAbi, address, functionName: "token1" },
 				{ abi: UNI3PoolAbi, address: address, functionName: "tickSpacing" },
 				{ abi: UNI3PoolAbi, address: address, functionName: "fee" }
-				// { abi: UNI3PoolAbi, address: address, functionName: "name" }
 			]
 		})
 
