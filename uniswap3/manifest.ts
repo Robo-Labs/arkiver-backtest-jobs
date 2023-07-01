@@ -12,7 +12,8 @@ import { onMint } from "./handlers/minthandler.ts"
 import { onDecreaseLiquidity, onIncreaseLiquidity } from "./handlers/modliquidityhandler.ts"
 
 const startBlockHeight = 12399631n // enough to test
-const manifest = new Manifest('uniswapV3-3');
+//const startBlockHeight = 12440000n
+const manifest = new Manifest('uniswapV3-lucky5');
 const mainnet = manifest
 	.addEntities([AmmPool, Token, Snapshot, FarmSnapshot, Swap])
 	.chain("mainnet")

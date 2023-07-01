@@ -61,7 +61,7 @@ export const onSwap: EventHandlerFor<typeof UNI3PoolAbi, "Swap"> = async (
       amount1: amount1Real,
       price0,
       price1,
-      sqrtPriceX96: toNumber(sqrtPriceX96).toString(),
+      sqrtPriceX96: numberToHex(sqrtPriceX96),
       liquidity: toNumber(liquidity),
       tick
     })
