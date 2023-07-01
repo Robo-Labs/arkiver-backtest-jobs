@@ -9,6 +9,10 @@ interface ISnapshot {
 	variableBorrowRate: number,
 	totalSupply: number,
 	totalDebt: number,
+	cTokenTotalSupply: number,
+	compPrice: number,
+	compSupplyPerBlock: number,
+	compBorrowPerBlock: number,
 }
 
 export const Snapshot = createEntity<ISnapshot>("Snapshot", {
@@ -19,4 +23,8 @@ export const Snapshot = createEntity<ISnapshot>("Snapshot", {
 	variableBorrowRate: Number,
 	totalSupply: Number,
 	totalDebt: Number,
+	cTokenTotalSupply: Number,
+	compPrice: Number,
+	compSupplyPerBlock: Number,
+	compBorrowPerBlock: Number,
 })
