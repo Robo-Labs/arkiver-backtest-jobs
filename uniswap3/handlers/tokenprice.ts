@@ -39,9 +39,13 @@ export class TokenPrice {
 				try{
 					return await TokenPrice.getUniv3SpotPrice(client, store, block, token.address)
 				} catch(e) {
-					return TokenPrice.getUniv2SpotPrice(client, store, block, token.address)
+					try{
+						return TokenPrice.getUniv2SpotPrice(client, store, block, token.address)
+					} catch(e){
+						// As you can see, this bad.
+						return 0
+					}
 				}
-				
 			}
 		})
 	}
