@@ -21,7 +21,7 @@ interface ISnapshot {
 }
 
 export const Snapshot = createEntity<ISnapshot>("Snapshot", {
-	pool: { type: Types.ObjectId, ref: 'Pool'},
+	pool: { type: Types.ObjectId, ref: 'AmmPool'},
 	timestamp: { type: Number, index: true },
 	block: { type: Number, index: true },
 	res: String,

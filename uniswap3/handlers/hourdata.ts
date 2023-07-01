@@ -83,6 +83,7 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 			// console.log(`totalSupply: ${totalSupply}`)
 			//console.log(slot0)
 			const prices = await Promise.all(pool.tokens.map(async (token) => {
+				//console.log(token)
 				const price = await TokenPrice.get(client, store, block.number!, token)
 				//console.log(`price ${token.address}: ${price}`)
 				return price
