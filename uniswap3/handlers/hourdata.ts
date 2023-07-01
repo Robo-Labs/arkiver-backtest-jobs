@@ -27,6 +27,7 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 	const last = await Snapshot.findOne({}).sort({ timestamp: -1 })
 	const lastHour = last?.timestamp ?? (nearestHour(now) - HOUR)
 	if (lastHour < nowHour) {
+		console.log(`block.number: ${block.number}`)
 		if (await getPoolCount() === 0) {
 			await Promise.all(POOLS.map(info => getPool(client, info.pool, info.symbol))) // hack to make sure all pools exist
 		}
