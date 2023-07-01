@@ -6,6 +6,7 @@ import { EACAggregatorProxy } from "../abis/EACAggregatorProxy.ts"
 import { velodromeAbi } from "../abis/velodromeAbi.ts";
 import { VelodromeRouterAbi } from "../abis/VelodromeRouter.ts";
 import { Univ3QuoterAbi } from "../abis/Univ3Quoter.ts";
+import { UNIV2PairAbi } from "../abis/UNIV2PairAbi.ts";
 import { IAavePool } from "../entities/aavepool.ts";
 import { IToken } from "../entities/token.ts";
 import { toNumber } from "./util.ts";
@@ -17,45 +18,72 @@ export const CLPriceRegistry = '0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf'
 const Univ3QuoterAddress = '0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6'
 export const USD = "0x0000000000000000000000000000000000000348" // The ID for USD in the FeedRegistry
 const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 const USDT = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+const LUSD = "0x5f98805A4E8be255a32880FDeC7F6728C6568bA0"
 const CLMap = {	"optimism": {"0x7F5c764cBc14f9669B88837ca1490cCa17c31607": "0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3", //USDC
 							"0x4200000000000000000000000000000000000006": "0x13e3Ee699D1909E989722E753853AE30b17e08c5", //WETH
 							"0xc40F949F8a4e094D1b49a23ea9241D289B7b2819": "0x9dfc79Aaeb5bb0f96C6e9402671981CdFc424052"},
-				"ethereum": {"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x8fffffd4afb6115b954bd326cbe7b4ba576818f6"}} //USDC
+				"ethereum": {"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": "0x8fffffd4afb6115b954bd326cbe7b4ba576818f6", //USDC
+							"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2": "0x5f4ec3df9cbd43714fe2740f5e3616155c5b8419"}}// WETH
+const UNIV2Map = {"0x5f98805A4E8be255a32880FDeC7F6728C6568bA0": "0xF20EF17b889b437C151eB5bA15A47bFc62bfF469"}
 
 export class TokenPrice {
 
 	static async get(client: PublicClient, store: Store, block: bigint, token: any): Promise<number> {
 		return await store.retrieve(`TokenPrice:${token.address}:${Number(block)}`, async () => {
 			try {
-				return await TokenPrice.getUniv3SpotPrice(client, store, block, token.address)
-			} catch(e) {
 				return await TokenPrice.getCLPrice(client, block, token.address)
+				
+			} catch(e) {
+				try{
+					return await TokenPrice.getUniv3SpotPrice(client, store, block, token.address)
+				} catch(e) {
+					try{
+						return await TokenPrice.getUniv2SpotPrice(client, store, block, token.address)
+					} catch(e){
+						// As you can see, this bad.
+						return 0
+					}
+				}
 			}
 		})
 	}
 
 	static async getUniv3SpotPrice(client: PublicClient, store: Store, block: bigint, token: Address) {
-		try{
-			const { result } = await client.simulateContract({
-				abi: Univ3QuoterAbi,
-				address: Univ3QuoterAddress,
-				functionName: "quoteExactInputSingle",
-				args: [token, USDC, 500, ethers.parseUnits('1', 18), 0],
-				blockNumber: block,
-			})
-			await store.retrieve(`lastPrice:${token}`, () => {return toNumber(result as bigint, 6)})
-			return toNumber(result as bigint, 6)
-		} catch(e){
-			//console.log(`error: ${e}`)
-			const result = await store.fetch(`lastPrice:${token}`)
-			//console.log(`cache price: ${result}, ${token}`)
-			if(result == undefined)
-				throw('not a uni coin')
-			return result
-		}
-
+		const { result } = await client.simulateContract({
+			abi: Univ3QuoterAbi,
+			address: Univ3QuoterAddress,
+			functionName: "quoteExactInputSingle",
+			args: [token, USDC, 500, ethers.parseUnits('1', 18), 0],
+			blockNumber: block,
+		})
+		return toNumber(result as bigint, 6)
 	}
+
+	static async getUniv2SpotPrice(client: PublicClient, store: Store, block: bigint, token: Address) {
+		if(!UNIV2Map[token]){
+			console.log("failed to fetch V2 map")
+			throw('failed to fetch V2 map')
+		}
+		console.log(`UNIV2Map[token]: ${UNIV2Map[token]}`)
+		const { result } = await client.simulateContract({
+			abi: UNIV2PairAbi,
+			address: UNIV2Map[token],
+			functionName: "getReserves",
+			blockNumber: block,
+		})
+		const token0 = toNumber(result[0], 18) //TODO We need to get decimals from caller
+		const token1 = toNumber(result[1], 18)
+		const price = token1/token0
+		const priceWeth = await store.retrieve(`${block}:${WETH}:CLprice`, async () => {
+			return await TokenPrice.getCLPrice(client, block, WETH)
+		})
+		const priceToken = price*priceWeth
+		return priceToken
+		///return toNumber(result as bigint, 6)
+	}
+
 
 	static async getVelodromeSpotPrice(client: PublicClient, block: bigint, token: any) {
 		const VELODROME_ROUTER = "0x9c12939390052919aF3155f41Bf4160Fd3666A6f"
