@@ -6,7 +6,7 @@ import { Snapshot } from "./entities/snapshot.ts";
 
 
 // LUSD/WEH Pair Data
-const startBlockHeight = 71946768n // aLUSD created on block 86532283
+const startBlockHeight = 72300000n // aLUSD created on block 86532283
 
 const manifest = new Manifest('sonne-snapshots');
 const optimism = manifest

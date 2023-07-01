@@ -109,6 +109,7 @@ export const getToken = async (client: PublicClient, address: Address) => {
 			functionName: 'symbol',
 		})
 	])
+	console.log(symbol)
 
 	const token: IToken = {
 		id,

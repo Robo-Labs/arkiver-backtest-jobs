@@ -5,15 +5,15 @@ import { hourDataHandler } from "./handlers/hourdata.ts";
 import { Snapshot } from "./entities/snapshot.ts";
 import { FarmSnapshot } from "./entities/farmsnapshot.ts";
 
-const startBlockHeight = 80000000n // enough to test
+const startBlockHeight = 71946768n // enough to test
 
-const manifest = new Manifest('velodrome-snapshots-incentives-4');
+const manifest = new Manifest('velodrome-snapshots');
 const optimism = manifest
 	.addEntities([AmmPool, Token, Snapshot, FarmSnapshot])
 	.chain("optimism")
 
 // Hourly data handler
 optimism
-	.addBlockHandler({ blockInterval: 200n, startBlockHeight, handler: hourDataHandler })
+	.addBlockHandler({ blockInterval: 200, startBlockHeight, handler: hourDataHandler })
 
 export default manifest.build();
