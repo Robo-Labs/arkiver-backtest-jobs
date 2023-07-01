@@ -41,7 +41,7 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 	const lastHour = last?.timestamp ?? (nearestHour(now) - HOUR)
 	
 	if (lastHour < nowHour) {
-		const pools = [(await getPools(client, store, block.number!))[1]]
+		const pools = (await getPools(client, store, block.number!))
 		const { unitroller } = getUnitroller(client)
 
 		const records = await Promise.all(pools.map(async pool => {
