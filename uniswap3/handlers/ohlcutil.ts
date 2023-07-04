@@ -1,4 +1,4 @@
-import { type PublicClient, type Address, numberToHex } from "npm:viem";
+import { type PublicClient, type Address } from "npm:viem";
 import { Ohlc } from "../entities/ohlc.ts";
 import { getPool } from "./poolhelper.ts";
 import { Store } from "../deps.ts";
@@ -26,7 +26,7 @@ const createOhcl = async (client: PublicClient, store: Store, pair: Address, pri
 }
 
 export class OhlcUtil {
-  static async get(client: PublicClient, store: Store, timestamp: number, pair: Address, sqrtPriceX96: bigint) {
+  static async get(client: PublicClient, store: Store, timestamp: number, pair: Address, sqrtPriceX96: string) {
     const nowHour = nearestHour(Number(timestamp));
     // this can be optimised further by caching the hour data
     const now = await Ohlc.findOne({ address: pair, timestamp: nowHour })
@@ -35,7 +35,7 @@ export class OhlcUtil {
     const latest = await Ohlc.findOne({ address: pair }).sort({ timestamp: -1})
     if (!latest) {
       // this is the first one
-      return await createOhcl(client, store, pair, numberToHex(sqrtPriceX96), nowHour)
+      return await createOhcl(client, store, pair, sqrtPriceX96, nowHour)
     }
 
     // Gap fill

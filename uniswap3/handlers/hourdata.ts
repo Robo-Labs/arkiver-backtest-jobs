@@ -1,19 +1,12 @@
 import { BlockHandler, Store } from "https://deno.land/x/robo_arkiver/mod.ts";
-import { type PublicClient, type Block, type Address, numberToHex } from "npm:viem";
+import { type PublicClient, type Block, type Address } from "npm:viem";
 import { Erc20Abi } from "../abis/erc20.ts";
 import { Snapshot } from "../entities/snapshot.ts";
-import { getPool, getPoolCount, getRewardRate, getToken } from "./poolhelper.ts";
 import { TokenPrice } from "./tokenprice.ts";
 import { toNumber } from "./util.ts";
 import { UNI3PoolAbi } from "../abis/UNI3PoolAbi.ts";
-import { Swap } from '../entities/swap.ts'
 import { AmmPool } from "../entities/ammpool.ts";
-import { Ohlc } from "../entities/ohlc.ts";
 import { OhlcUtil } from "./ohlcutil.ts";
-
-export const POOLS: { pool: Address, symbol: string }[] = [
-	{ pool: '0x4e0924d3a751be199c426d52fb1f2337fa96f736', symbol: 'UNI3-LUSD/USDC 0.05%' }, // LUSD / USDC
-]
 
 const multicallAddress = '0xca11bde05977b3631167028862be2a173976ca11'
 const HOUR = 60 * 60

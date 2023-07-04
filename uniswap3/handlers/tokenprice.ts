@@ -7,7 +7,6 @@ import { velodromeAbi } from "../abis/velodromeAbi.ts";
 import { VelodromeRouterAbi } from "../abis/VelodromeRouter.ts";
 import { Univ3QuoterAbi } from "../abis/Univ3Quoter.ts";
 import { UNIV2PairAbi } from "../abis/UNIV2PairAbi.ts";
-import { IAavePool } from "../entities/aavepool.ts";
 import { IToken } from "../entities/token.ts";
 import { toNumber } from "./util.ts";
 import { Store } from "https://deno.land/x/robo_arkiver/mod.ts";

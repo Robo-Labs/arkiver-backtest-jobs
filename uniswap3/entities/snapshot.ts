@@ -10,8 +10,8 @@ interface ISnapshot {
 	sqrtPriceX96: string
 	feeGrowthGlobal0X128: string
 	feeGrowthGlobal1X128: string
-	low: number
-	high: number
+	low: string
+	high: string
 	totalValueLockedUSD: number
 	totalValueLockedToken0: string
 	totalValueLockedToken1: string
@@ -27,8 +27,8 @@ export const Snapshot = createEntity<ISnapshot>("Snapshot", {
 	sqrtPriceX96: String,
 	feeGrowthGlobal0X128: String,
 	feeGrowthGlobal1X128: String,
-	low: Number,
-	high: Number,
+	low: String,
+	high: String,
 	totalValueLockedUSD: Number,
 	totalValueLockedToken0: String,
 	totalValueLockedToken1: String
