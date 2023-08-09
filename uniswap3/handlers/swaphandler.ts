@@ -8,16 +8,6 @@ export const POOLS = [
   '0x4e0924d3a751be199c426d52fb1f2337fa96f736',
 ]
 
-function sqrtPriceX96ToBigInt(uint160 sqrtPriceX96, uint8 decimalsToken0)
-  internal
-  pure
-  returns (uint256)
-{
-// uint256 numerator1 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-// uint256 numerator2 = 10**decimalsToken0;
-// return FullMath.mulDiv(numerator1, numerator2, 1 << 192);
-}
-
 export const onSwap: EventHandlerFor<typeof UNI3PoolAbi, "Swap"> = async (
   { event, client, store }
 ) => {
