@@ -34,16 +34,13 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 		if (await getPoolCount() === 0) {
 			await Promise.all(POOLS.map(pool => getPool(client, store, pool))) // hack to make sure all pools exist
 		}
-		console.log("snapshot time")
 		const pools = await AmmPool.find({}).populate('tokens')
-		//console.log("pools:")
-		//console.log(pools)
+
 		// deno-lint-ignore require-await
 		const snaps = (await Promise.all(pools.map(async pool => {
 
 			const ohlc = await OhlcUtil.getOrGapFill(client, store, nowHour, pool.address)
 			if (!ohlc) {
-				console.log("early exit")
 				return null
 			}
 
@@ -62,8 +59,6 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 				blockNumber: block.number!,
 				multicallAddress,
 			})
-			console.log(feeGrowthGlobal0X128)
-			console.log(feeGrowthGlobal1X128)
 
 			const prices = await Promise.all(pool.tokens.map(token => {
 				return TokenPrice.get(client, store, block.number!, token)
@@ -72,9 +67,6 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 			const tvl0 = toNumber(totalValueLockedToken0.result!, pool.tokens[0].decimals)
 			const tvl1 = toNumber(totalValueLockedToken1.result!, pool.tokens[1].decimals)
 			const totalValueLockedUSD = prices[0] * tvl0 + prices[1] * tvl1
-			console.log(tvl0)
-			console.log(tvl1)
-			console.log(totalValueLockedUSD)
 
 			return new Snapshot({
 				pool,

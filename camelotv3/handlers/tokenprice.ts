@@ -46,16 +46,6 @@ export class TokenPrice {
 			} catch(e) {
 				console.log(e)
 				return 0
-				// try{
-				// 	return await TokenPrice.getUniv3SpotPrice(client, store, block, token.address)
-				// } catch(e) {
-				// 	try{
-				// 		return await TokenPrice.getUniv2SpotPrice(client, store, block, token.address)
-				// 	} catch(e){
-				// 		// As you can see, this bad.
-				// 		return 0
-				// 	}
-				// }
 			}
 		})
 	}
@@ -110,9 +100,6 @@ export class TokenPrice {
 	}
 
 	static async getCLPrice(client: PublicClient, block: bigint, token: Address) {
-		console.log(`getCLPrice network: ${client.chain.name.toLowerCase()}`)
-		console.log(`getCLPrice oracle: ${CLMap[client.chain.name.toLowerCase()][token]}`)
-		console.log(`getCLPrice token: ${token}`)
 		const result = await client.readContract({
 			abi: EACAggregatorProxy,
 			address: CLMap[client.chain.name.toLowerCase()][token],
