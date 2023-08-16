@@ -1,4 +1,4 @@
-import { Manifest } from "https://deno.land/x/robo_arkiver/mod.ts";
+import { Manifest } from "https://deno.land/x/robo_arkiver@v0.4.21/mod.ts";
 import { AmmPool } from "./entities/ammpool.ts";
 import { Token } from "./entities/token.ts";
 import { hourDataHandler } from "./handlers/hourdata.ts";
@@ -7,21 +7,29 @@ import { UNI3PoolAbi } from "./abis/UNI3PoolAbi.ts"
 import { onSwap } from "./handlers/swaphandler.ts"
 import { Ohlc } from "./entities/ohlc.ts";
 
-const startBlockHeight = 14353601n 
-//const startBlockHeight = 12440000n
-const manifest = new Manifest('univ3-ohlc');
-const mainnet = manifest
-	.addEntities([AmmPool, Token, Snapshot, Ohlc])
-	.chain("mainnet", { blockRange: 500n })
-	
-	
+const startBlockHeight = 50000000n 
+const POOL_USDC_WETH_500 = '0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443'
 
+const manifest = new Manifest('univ3-ohlc');
+const arbitrum = manifest
+  .addEntities([AmmPool, Token, Snapshot, Ohlc])
+  .addChain("arbitrum", { blockRange: 500n })
+  
+  
 // Hourly data handler
-mainnet
-	.addBlockHandler({ blockInterval: 200n, startBlockHeight, handler: hourDataHandler })
-mainnet
-	.contract("UNI3PoolAbi", UNI3PoolAbi)
-	.addSources({ '0x4e0924d3a751be199c426d52fb1f2337fa96f736': startBlockHeight })
-	.addEventHandlers({ 'Swap': onSwap })
+arbitrum
+  .addBlockHandler({ blockInterval: 2000, startBlockHeight, handler: hourDataHandler })
+
+arbitrum
+  .addContract({
+    abi: UNI3PoolAbi,
+    name: 'UNI3PoolAbi',
+    sources: {
+      [POOL_USDC_WETH_500]: startBlockHeight
+    },
+    eventHandlers: {
+      Swap: onSwap
+    }
+  })
 
 export default manifest.build();

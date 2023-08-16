@@ -1,11 +1,11 @@
-import { fromHex, Hex, numberToHex } from 'npm:viem'
-import { type EventHandlerFor } from 'https://deno.land/x/robo_arkiver@v0.4.14/mod.ts'
+import { fromHex, numberToHex } from 'npm:viem'
+import { type EventHandlerFor } from 'https://deno.land/x/robo_arkiver@v0.4.21/mod.ts'
 import { UNI3PoolAbi } from '../abis/UNI3PoolAbi.ts'
 import {getBlock } from "./poolhelper.ts"
 import { OhlcUtil } from './ohlcutil.ts'
 
 export const POOLS = [
-  '0x4e0924d3a751be199c426d52fb1f2337fa96f736',
+  '0xc31e54c7a869b9fcbecc14363cf510d1c41fa443',
 ]
 
 export const onSwap: EventHandlerFor<typeof UNI3PoolAbi, "Swap"> = async (
