@@ -2,27 +2,20 @@ import { type BlockHandler } from 'https://deno.land/x/robo_arkiver@v0.4.21/mod.
 import { JOES_V2_ABI } from '../abis/joesv2LpAbi.ts';
 import { HourData } from '../entities/hourdata.ts';
 import { getPools } from '../utils/pools.ts';
-import { Address } from 'npm:abitype';
+import { Address, toHex } from 'npm:viem';
 
 const HOUR = 60 * 60
 
 const mulShiftRoundDown = (x: bigint, y: bigint, shift: number) => {
   return (x * y) >> BigInt(shift)
 }
-const split256to128s = (n: bigint, leftDecimals: number, rightDecimals: number) => {
-  const mask = (1n << 128n) - 1n
-  return [
-    toNumber(n >> 128n, leftDecimals), 
-    toNumber(n & mask, rightDecimals)
-  ]
-}
 
 const nearestHour = (now: number) => {
-	return Math.floor(now / HOUR) * HOUR
+  return Math.floor(now / HOUR) * HOUR
 }
 
 const toNumber = (n: bigint, decimals: number = 0) => {
-	return Number(n) / (10 ** decimals)
+  return Number(n) / (10 ** decimals)
 }
 
 export const snapshotBins: BlockHandler = async ({
@@ -31,12 +24,12 @@ export const snapshotBins: BlockHandler = async ({
   store,
   logger,
 }): Promise<void> => {
-	const now = Number(block.timestamp)
-	const nowHour = nearestHour(Number(now))
-	const last = await HourData.findOne({}).sort({ timestamp: -1 })
-	const lastHour = last?.timestamp ?? (nearestHour(now) - HOUR)
+  const now = Number(block.timestamp)
+  const nowHour = nearestHour(Number(now))
+  const last = await HourData.findOne({}).sort({ timestamp: -1 })
+  const lastHour = last?.timestamp ?? (nearestHour(now) - HOUR)
 
-	if (lastHour < nowHour) {
+  if (lastHour < nowHour) {
     logger.info(`Taking snapshot for block: ${block.number} at ${now}`)
     const pools = await getPools(client, store, block.number)
     const abi = JOES_V2_ABI
@@ -45,7 +38,7 @@ export const snapshotBins: BlockHandler = async ({
     const docs = await Promise.all(pools.map(async pool => {
       const address = pool.address as Address
       const activeId = Number(await client.readContract({
-        abi, address, functionName: 'getActiveId',
+        abi, address, functionName: 'getActiveId', blockNumber: block.number!
       }))
       const start = activeId - binRange
       const end = activeId + binRange
@@ -68,9 +61,10 @@ export const snapshotBins: BlockHandler = async ({
           id: start + i,
           reserveX: toNumber(binReserveX, pool.tokenX.decimals),
           reserveY: toNumber(binReserveY, pool.tokenY.decimals),
-          supply: toNumber(supply, 36),
+          supply: toHex(supply),
         }
       })
+
       const price = mulShiftRoundDown(price128x128 as bigint, 10n ** 18n, 128)
       const decimals = pool.tokenY.decimals + (18 - pool.tokenX.decimals)
 

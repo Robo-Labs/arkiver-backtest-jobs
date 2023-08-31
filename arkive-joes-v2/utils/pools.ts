@@ -12,12 +12,12 @@ const POOLS = [
 ] as Address[]
 
 export const getPools = async (client: PublicClient, store: Store, block: bigint) => {
-	return await store.retrieve(`Joes Pools`, async () => {
-		const records = await Pool.find({}).populate('tokenX tokenY')
-		if (records.length > 0)
-			return records
+  return await store.retrieve(`Joes Pools`, async () => {
+    const records = await Pool.find({}).populate('tokenX tokenY')
+    if (records.length > 0)
+      return records
     console.log('here')
-		// Otherwise populate the array offchain
+    // Otherwise populate the array offchain
     const pools = await Promise.all(POOLS.map(async pool => {
       const abi = JOES_V2_ABI
       
@@ -37,39 +37,41 @@ export const getPools = async (client: PublicClient, store: Store, block: bigint
         tokenY,
       })
     }))
-		await Pool.bulkSave(pools)
-		return pools
-	})
+    await Pool.bulkSave(pools)
+    return pools
+  })
 }
 
 
 export const getTokens = async (client: PublicClient, tokens: Address[]) => {
-	// check if it's already in the db
-	const record = await Token.findOne({ address: { $in: tokens } })
-	if (record)
-		return record
+  // check if it's already in the db
+  const record = await Token.findOne({ address: { $in: tokens } })
+  if (record)
+    return record
 
-	// get the pair data.. todo, add symbol
-	const data = await client.multicall({
-		contracts: tokens.map(address => [
-			{ 
-				address: address, 
-				abi: ERC20_ABI, 
-				functionName: 'decimals',
-			},
-			{ 
-				address: address, 
-				abi: ERC20_ABI, 
-				functionName: 'symbol',
-			}
-		]).flat()
-	}).then(res => res.map(e => e.result!))
+  // get the pair data.. todo, add symbol
+  const data = await client.multicall({
+    contracts: tokens.map(address => [
+      { 
+        address: address, 
+        abi: ERC20_ABI, 
+        functionName: 'decimals',
+      },
+      { 
+        address: address, 
+        abi: ERC20_ABI, 
+        functionName: 'symbol',
+      }
+    ]).flat()
+  }).then(res => res.map(e => e.result!))
   
   const network = client.chain?.name as string
-  return tokens.map((address, i) => new Token({
-		address: address,
-		network,
-		decimals: Number(data[i * 2]),
-		symbol: data[i * 2 + 1],
+  const docs = tokens.map((address, i) => new Token({
+    address: address,
+    network,
+    decimals: Number(data[i * 2]),
+    symbol: data[i * 2 + 1],
   }))
+  Token.bulkSave(docs)
+  return docs
 }

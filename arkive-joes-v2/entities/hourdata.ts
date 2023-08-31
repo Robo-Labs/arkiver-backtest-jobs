@@ -10,20 +10,20 @@ interface IHourData {
     id: number,
     reserveX: number,
     reserveY: number,
-    supply: number,
+    supply: string, // hex
   }[]
 }
 
 export const HourData = createEntity<IHourData>("HourData", {
 	pool: String,
-	timestamp: Number,
-  block: Number,
+	timestamp: { type: Number, index: true },
+  block: { type: Number, index: true },
   price: Number,
   activeBin: Number,
   bins: [{
     id: Number,
     reserveX: Number,
     reserveY: Number,
-    supply: Number,
+    supply: String, //hex
   }]
 })
