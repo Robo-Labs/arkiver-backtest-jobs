@@ -10,11 +10,21 @@ export const getPairId = (client: PublicClient, pair: Address | string) => {
 }
 
 export const AavePool: {[key: string]: Address } = {
-	'optimism': '0x794a61358D6845594F94dc1DB02A252b5b4814aD'
+	'optimsm': '0x794a61358D6845594F94dc1DB02A252b5b4814aD',
+	'arbitrum': '0x794a61358D6845594F94dc1DB02A252b5b4814aD',
 }
 
 export const AavePoolData: {[key: string]: Address } = {
-	'optimism': '0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654'
+	'optimsm': '0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654',
+	'arbitrum': '0x69FA688f1Dc47d4B5d8029D5a35FB7a548310654',
+}
+
+export const convertChain = (chain: string) => {
+	switch (chain) {
+		case 'op mainnet': return 'optimsm'
+		case 'arbitrum one': return 'arbitrum'
+		default: return chain
+	}
 }
 
 export const getTokenId = (client: PublicClient, token: Address | string) => {
@@ -23,7 +33,7 @@ export const getTokenId = (client: PublicClient, token: Address | string) => {
 export const getPoolAddress = (client: PublicClient) => {
 	if (!client.chain)
 		throw new Error('Chain must be specified')
-	const network = client.chain.name.toLocaleLowerCase()
+	const network = convertChain(client.chain.name.toLocaleLowerCase())
 	const pool = AavePool[network]
 	if (!pool)
 		throw new Error('Unknown Pool for network: ' + network)
@@ -32,7 +42,7 @@ export const getPoolAddress = (client: PublicClient) => {
 export const getPoolDataAddress = (client: PublicClient) => {
 	if (!client.chain)
 		throw new Error('Chain must be specified')
-	const network = client.chain.name.toLocaleLowerCase()
+	const network = convertChain(client.chain.name.toLocaleLowerCase())
 	const poolData = AavePoolData[network]
 	if (!poolData)
 		throw new Error('Unknown Pool for network: ' + network)

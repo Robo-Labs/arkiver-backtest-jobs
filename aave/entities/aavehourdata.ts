@@ -8,6 +8,7 @@ interface IAAVEHourData {
 	variableBorrowRate: number,
 	totalSupply: number,
 	totalDebt: number,
+	network: string,
 }
 
 export const AAVEHourData = createEntity<IAAVEHourData>("HourData", {
@@ -17,4 +18,5 @@ export const AAVEHourData = createEntity<IAAVEHourData>("HourData", {
 	variableBorrowRate: Number,
 	totalSupply: Number,
 	totalDebt: Number,
+	network: String,
 })

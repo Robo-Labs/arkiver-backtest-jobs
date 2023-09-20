@@ -2,7 +2,7 @@ import { BlockHandler, Store } from "https://deno.land/x/robo_arkiver/mod.ts";
 import { type PublicClient, type Block } from "npm:viem";
 import { AAVEPoolDataAbi } from "../abis/AAVEPoolDataAbi.ts";
 import { AAVEHourData } from "../entities/aavehourdata.ts";
-import { getPoolDataAddress, getPools } from "./entityutil.ts";
+import { convertChain, getPoolDataAddress, getPools } from "./entityutil.ts";
 
 const HOUR = 60 * 60
 
@@ -20,9 +20,10 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 	client: PublicClient;
 	store: Store;
 }): Promise<void> => {
+	const network = convertChain(client.chain!.name.toLocaleLowerCase())
 	const now = Number(block.timestamp)
 	const nowHour = nearestHour(Number(now))
-	const last = await AAVEHourData.findOne({}).sort({ timestamp: -1 })
+	const last = await AAVEHourData.findOne({ network }).sort({ timestamp: -1 })
 	const lastHour = last?.timestamp ?? (nearestHour(now) - HOUR)
 
 
@@ -31,7 +32,7 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 		const pools = await getPools(client, store, block.number!)
 		const { poolData } = getPoolDataAddress(client)
 
-		const records = await Promise.all(pools.map(async pool => {		  
+		const records = await Promise.all(pools.map(async pool => {			
 			const [
 				, // unbacked,
 				, // accruedToTreasuryScaled,
@@ -55,6 +56,7 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 
 			return new AAVEHourData({
 				timestamp: nowHour,
+				network,
 				pool: pool,
 				underlying: pool.underlying,
 				liquidityRate: toNumber(liquidityRate, 27),
