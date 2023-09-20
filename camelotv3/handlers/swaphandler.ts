@@ -1,16 +1,17 @@
 import { fromHex, Hex, numberToHex } from 'npm:viem'
-import { type EventHandlerFor } from 'https://deno.land/x/robo_arkiver@v0.4.14/mod.ts'
-import { UNI3PoolAbi } from '../abis/UNI3PoolAbi.ts'
+import { type EventHandlerFor } from 'https://deno.land/x/robo_arkiver@v0.4.22/mod.ts'
 import {getBlock } from "./poolhelper.ts"
 import { OhlcUtil } from './ohlcutil.ts'
+import { CamelotAbi } from '../abis/camelotAbi.ts'
 
 export const POOLS = [
   '0xb1026b8e7276e7ac75410f1fcbbe21796e8f7526',
 ]
 
-export const onSwap: EventHandlerFor<typeof UNI3PoolAbi, "Swap"> = async (
+export const onSwap: EventHandlerFor<typeof CamelotAbi, "Swap"> = async (
   { event, client, store }
 ) => {
+  console.log('swap', event.address)
   if(!POOLS.includes(event.address)){
     return
   }

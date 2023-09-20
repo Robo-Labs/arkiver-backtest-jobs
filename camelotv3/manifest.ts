@@ -1,4 +1,4 @@
-import { Manifest } from "https://deno.land/x/robo_arkiver/mod.ts";
+import { Manifest } from "https://deno.land/x/robo_arkiver@v0.4.22/mod.ts";
 import { AmmPool } from "./entities/ammpool.ts";
 import { Token } from "./entities/token.ts";
 import { hourDataHandler } from "./handlers/hourdata.ts";
@@ -7,21 +7,21 @@ import { CamelotAbi } from "./abis/camelotAbi.ts"
 import { onSwap } from "./handlers/swaphandler.ts"
 import { Ohlc } from "./entities/ohlc.ts";
 
-const startBlockHeight = 103164316n 
-//const startBlockHeight = 12440000n
-const manifest = new Manifest('camelot-ohlc');
-const mainnet = manifest
-	.addEntities([AmmPool, Token, Snapshot, Ohlc])
-	.chain("arbitrum", { blockRange: 500n })
-	
-	
-
-// Hourly data handler
-mainnet
-	.addBlockHandler({ blockInterval: 2000n, startBlockHeight, handler: hourDataHandler })
-mainnet
-	.contract("CamelotAbi", CamelotAbi)
-	.addSources({ '0xB1026b8e7276e7AC75410F1fcbbe21796e8f7526': startBlockHeight })
-	.addEventHandlers({ 'Swap': onSwap })
+const startBlockHeight = 103178000n
+const manifest = new Manifest('camelot-ohlc')
+  .addEntities([AmmPool, Token, Snapshot, Ohlc])
+  .addChain("arbitrum", (chain) => chain
+    .addBlockHandler({ blockInterval: 2000, startBlockHeight, handler: hourDataHandler })
+    .addContract({
+      name: 'CamelotAbi',
+      abi: CamelotAbi, 
+      sources: { 
+        '0xB1026b8e7276e7AC75410F1fcbbe21796e8f7526': startBlockHeight
+      },
+      eventHandlers: {
+        'Swap': onSwap
+      }
+    })
+  )
 
 export default manifest.build();

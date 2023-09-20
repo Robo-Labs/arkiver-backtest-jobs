@@ -53,8 +53,10 @@ export class OhlcUtil {
     const now = await Ohlc.findOne({ address: pair, timestamp })
     if (now) return now
 
-    const latest = await Ohlc.findOne({ pair }).sort({ timestamp: -1})
+    const latest = await Ohlc.findOne({ address: pair }).sort({ timestamp: -1 })
     if (!latest) {
+      console.log('cannot find one!!')
+      console.log(pair)
       return null // cannot start from here
     }
 

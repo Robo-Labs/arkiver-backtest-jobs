@@ -17,13 +17,14 @@ const getNearestHour = (now: number) => {
 }
 export const POOLS = [
 	'0xb1026b8e7276e7ac75410f1fcbbe21796e8f7526',
-  ]
+]
 
 export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 	block: Block;
 	client: PublicClient;
 	store: Store;
 }): Promise<void> => {
+
 	client.batch = { multicall: true }
 	
 	const now = Number(block.timestamp)
@@ -41,6 +42,7 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 
 			const ohlc = await OhlcUtil.getOrGapFill(client, store, nowHour, pool.address)
 			if (!ohlc) {
+        console.log('no ohlc')
 				return null
 			}
 
