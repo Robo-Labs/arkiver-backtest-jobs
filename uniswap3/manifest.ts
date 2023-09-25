@@ -14,8 +14,6 @@ const mainnet = manifest
 	.addEntities([AmmPool, Token, Snapshot, Ohlc])
 	.chain("mainnet", { blockRange: 500n })
 	
-	
-
 // Hourly data handler
 mainnet
 	.addBlockHandler({ blockInterval: 200n, startBlockHeight, handler: hourDataHandler })
@@ -23,5 +21,18 @@ mainnet
 	.contract("UNI3PoolAbi", UNI3PoolAbi)
 	.addSources({ '0x4e0924d3a751be199c426d52fb1f2337fa96f736': startBlockHeight })
 	.addEventHandlers({ 'Swap': onSwap })
+
+const arbitrum = manifest
+	.addEntities([AmmPool, Token, Snapshot, Ohlc])
+	.chain("arbitrum", { blockRange: 500n })
+
+arbitrum
+	.addBlockHandler({ blockInterval: 200n, startBlockHeight, handler: hourDataHandler })
+arbitrum
+	.contract("UNI3PoolAbi", UNI3PoolAbi)
+	.addSources({ '0xc31e54c7a869b9fcbecc14363cf510d1c41fa443': startBlockHeight })
+	.addEventHandlers({ 'Swap': onSwap })
+
+
 
 export default manifest.build();
