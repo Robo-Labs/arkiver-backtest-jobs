@@ -1,4 +1,4 @@
-export { formatUnits } from "npm:viem";
+export { formatUnits, type PublicClient, type Address } from "npm:viem";
 export {
   createEntity,
   type EventHandlerFor,

@@ -4,6 +4,7 @@ import { CamelotAbi } from '../abis/camelotAbi.ts'
 export const onFee: EventHandlerFor<typeof CamelotAbi, "Fee"> = async (
   { event, client, store }
 ) => {
-  console.log('fee handler')
-  store.set(`fee:${event.address}`, (event.args))
+  // console.log('fee handler')
+  // console.log(event.args, event.blockNumber)
+  await store.set(`fee:${event.address}`, (event.args))
 }
