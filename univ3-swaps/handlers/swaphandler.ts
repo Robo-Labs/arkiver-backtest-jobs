@@ -32,23 +32,6 @@ export const onSwap: EventHandlerFor<typeof UNIV3_POOL_ABI, "Swap"> = async (
 
   const pool = await getPool(client, store, event.address)
   const FEE_DENOM = 1e6
-  const [
-    // feeGrowthGlobal0X128,
-    // feeGrowthGlobal1X128,
-    totalValueLockedToken0,
-    totalValueLockedToken1,
-  ] = await client.multicall({
-    contracts: [
-      // { abi: UNIV3_POOL_ABI, address: pool.address, functionName: "feeGrowthGlobal0X128" },
-      // { abi: UNIV3_POOL_ABI, address: pool.address, functionName: "feeGrowthGlobal1X128" },
-      { abi: Erc20Abi, address: pool.tokens[0].address, functionName: "balanceOf", args: [pool.address] },
-      { abi: Erc20Abi, address: pool.tokens[1].address, functionName: "balanceOf", args: [pool.address] },
-    ],
-    blockNumber: block.number!,
-  }).then(res => res.map(e => e.result!))
-
-  // console.log(feeGrowthGlobal0X128)
-  // console.log(feeGrowthGlobal1X128)
 
   // Grab the relative fee growth from the store
   const relativeFeeGrowthX128 = await store.retrieve(`relativeFeeGrowth:${event.address}`, async () => {

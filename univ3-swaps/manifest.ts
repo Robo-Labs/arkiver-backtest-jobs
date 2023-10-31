@@ -13,7 +13,7 @@ const startBlockHeight = 17000000n
 const manifest = new Manifest('univ3-swaps')
   .addEntities([AmmPool, Token, Swap])
   .addChain("arbitrum", (chain) => chain
-    .setOptions({ blockRange: 799n })
+    .setOptions({ blockRange: 2999n })
     // .addBlockHandler({ blockInterval: 2000, startBlockHeight, handler: hourDataHandler })
     .addContract({
       name: 'Univ3Pool',
