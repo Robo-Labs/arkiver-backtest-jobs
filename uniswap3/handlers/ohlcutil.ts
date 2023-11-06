@@ -53,14 +53,14 @@ export class OhlcUtil {
     const now = await Ohlc.findOne({ address: pair, timestamp })
     if (now) return now
 
-    const latest = await Ohlc.findOne({ pair }).sort({ timestamp: -1})
+    const latest = await Ohlc.findOne({ address: pair }).sort({ timestamp: -1})
     if (!latest) {
       return null // cannot start from here
     }
 
     // Gap fill
     const gaps = (timestamp - latest.timestamp) / HOUR
-    const timestamps = range(gaps).map(e => latest.timestamp + HOUR + (e * HOUR))
+    const timestamps = range(gaps > 0 ? gaps : 1).map(e => latest.timestamp + HOUR + (e * HOUR))
     const ohlcs = await Promise.all(timestamps.map(async (timestamp: number) => {
       return await createOhcl(client, store, pair, latest.close, timestamp)
     }))

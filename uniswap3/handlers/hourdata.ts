@@ -4,7 +4,7 @@ import { Erc20Abi } from "../abis/erc20.ts";
 import { Snapshot } from "../entities/snapshot.ts";
 import { TokenPrice } from "./tokenprice.ts";
 import { toNumber } from "./util.ts";
-import { UNI3PoolAbi } from "../abis/UNI3PoolAbi.ts";
+import { UNIV3_POOL_ABI } from "../abis/UNI3PoolAbi.ts";
 import { AmmPool } from "../entities/ammpool.ts";
 import { OhlcUtil } from "./ohlcutil.ts";
 
@@ -20,7 +20,8 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 	store: Store;
 }): Promise<void> => {
 	client.batch = { multicall: true }
-	
+
+
 	const now = Number(block.timestamp)
 	const nowHour = getNearestHour(Number(now)) - HOUR
 	const last = await Snapshot.findOne({}).sort({ timestamp: -1 })
@@ -43,8 +44,8 @@ export const hourDataHandler: BlockHandler = async ({ block, client, store }: {
 				totalValueLockedToken1,
 			] = await client.multicall({
 				contracts: [
-					{ abi: UNI3PoolAbi, address: pool.address, functionName: "feeGrowthGlobal0X128" },
-					{ abi: UNI3PoolAbi, address: pool.address, functionName: "feeGrowthGlobal1X128" },
+					{ abi: UNIV3_POOL_ABI, address: pool.address, functionName: "feeGrowthGlobal0X128" },
+					{ abi: UNIV3_POOL_ABI, address: pool.address, functionName: "feeGrowthGlobal1X128" },
 					{ abi: Erc20Abi, address: pool.tokens[0].address, functionName: "balanceOf", args: [pool.address] },
 					{ abi: Erc20Abi, address: pool.tokens[1].address, functionName: "balanceOf", args: [pool.address] },
 				],

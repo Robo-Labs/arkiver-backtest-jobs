@@ -5,4 +5,4 @@ export {
   Manifest,
   type BlockHandler,
   type Store,
-} from "https://deno.land/x/robo_arkiver/mod.ts";
+} from "https://deno.land/x/robo_arkiver@v0.4.22/mod.ts";

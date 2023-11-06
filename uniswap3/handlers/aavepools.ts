@@ -29,7 +29,6 @@ export const getPools = async (client: PublicClient) => {
 		functionName: 'getReservesList',
 	})
 
-	console.log('calling gettoken from aave')
 	const pools = await Promise.all(poolAddresses.map(async (address: Address) => { 
 		const token = await getToken(client, network, address)
 		return new AavePool({

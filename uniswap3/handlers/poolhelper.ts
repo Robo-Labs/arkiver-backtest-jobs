@@ -7,7 +7,7 @@ import { AmmPool } from "../entities/ammpool.ts";
 import { Token } from "../entities/token.ts";
 import { TokenPrice } from "./tokenprice.ts";
 import { toNumber } from "./util.ts";
-import { UNI3PoolAbi } from "../abis/UNI3PoolAbi.ts";
+import { UNIV3_POOL_ABI } from "../abis/UNI3PoolAbi.ts";
 
 export const getPoolFromToken = async (token: string) => {
 	return (await AmmPool.findOne({ token }).populate('tokens'))
@@ -39,10 +39,10 @@ export const getPool = (client: PublicClient, store: Store, address: Address) =>
 
 		const [token0, token1, tickSpacing, feeRaw] = await client.multicall({
 			contracts: [
-				{ abi: UNI3PoolAbi, address, functionName: "token0" },
-				{ abi: UNI3PoolAbi, address, functionName: "token1" },
-				{ abi: UNI3PoolAbi, address: address, functionName: "tickSpacing" },
-				{ abi: UNI3PoolAbi, address: address, functionName: "fee" }
+				{ abi: UNIV3_POOL_ABI, address, functionName: "token0" },
+				{ abi: UNIV3_POOL_ABI, address, functionName: "token1" },
+				{ abi: UNIV3_POOL_ABI, address: address, functionName: "tickSpacing" },
+				{ abi: UNIV3_POOL_ABI, address: address, functionName: "fee" }
 			]
 		})
 
@@ -58,7 +58,6 @@ export const getPool = (client: PublicClient, store: Store, address: Address) =>
 			tokens: tokens,
 			fee,
 			tickSpacing: tickSpacing.result!
-
 		})
 		await pool.save()
 		return pool
@@ -67,7 +66,6 @@ export const getPool = (client: PublicClient, store: Store, address: Address) =>
 
 
 export const getToken = async (client: PublicClient, network: string, address: Address) => {
-	//console.log(`getting token: ${address}`)
 	const record = await Token.findOne({ network, address })
 	if (record)
 		return record
@@ -101,64 +99,4 @@ export const getToken = async (client: PublicClient, network: string, address: A
 	})
 	await token.save()
 	return token
-}
-
-export const getRewardRate = async (client: PublicClient, store: Store, block: Block, pool: string) => {
-	const veloToken = '0x3c8B650257cFb5f272f799F5e2b4e65093a11a05'
-	const veloVoter = '0x09236cfF45047DBee6B921e00704bed6D6B8Cf7e'
-	const gauge = await store.retrieve(`veloGauge:${pool}`, async () => {
-		return await client.readContract({
-			abi: VelodromeVoterAbi,
-			address: veloVoter,
-			functionName: 'gauges',
-			args: [pool],
-			blockNumber: block.number!,
-		})
-	})
-	const rewardPerSecond = await client.readContract({
-			abi: VelodromeGaugeAbi,
-			address: gauge,
-			functionName: 'rewardPerToken',
-			args: [veloToken],
-			blockNumber: block.number!,
-		})
-	return rewardPerSecond
-	
-
-
-	// const pool = await getPoolFromSymbol(symbol)
-	// const blockNumber = Number(block.number!)
-	// const [ crvRate, crvPrice, gaugeRelativeWeight, gaugeTotalSupply ] = (await Promise.all([
-	// 	store.retrieve(`crvRate:${blockNumber}`, async () => {
-	// 		return await client.readContract({
-	// 			abi: CrvTokenAbi,
-	// 			address: crvToken,
-	// 			functionName: 'rate',
-	// 			blockNumber: block.number!,
-	// 		})
-	// 	}),
-	// 	store.retrieve(`crvPrice:${blockNumber}`, async () => {
-	// 		return await TokenPrice.getCLPrice(client, block.number!, crvToken)
-	// 	}),
-	// 	client.readContract({
-	// 		abi: CurveGaugeControllerAbi,
-	// 		address: crvGaugeController,
-	// 		functionName: 'gauge_relative_weight',
-	// 		args: [pool.gauge as Address],
-	// 		blockNumber: block.number!,
-	// 	}),
-	// 	client.readContract({
-	// 		abi: Erc20Abi,
-	// 		address: pool.gauge as Address,
-	// 		functionName: 'totalSupply',
-	// 		blockNumber: block.number!,
-	// 	})
-	// ]))
-
-	// return {
-	// 	crvRate: toNumber(crvRate, 18), 
-	// 	crvPrice: crvPrice, 
-	// 	gaugeRelativeWeight: toNumber(gaugeRelativeWeight, 18), 
-	// 	gaugeTotalSupply: toNumber(gaugeTotalSupply, 18) 
-	// }
 }
